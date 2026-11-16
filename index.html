@@ -379,11 +379,10 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                         <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-2">
                             <p class="text-emerald-400 font-semibold text-xs uppercase mb-2">Consórcio (Sem Entrada Obrigatória)</p>
-                            <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400" id="labelParcPre">Parcela Pré-Contemplação:</span> <strong id="valParcRed">R$ 0</strong></div>
-                            
-                            <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400" id="labelParcPos">Parcela após contemplação (hipótese):</span> <strong id="valParcPos" class="text-emerald-400">R$ 0</strong></div>
-                                                        <div id="linhaPrazoPosLance" class="flex justify-between py-1 border-b border-slate-800" style="display:none"><span class="text-slate-400">Prazo restante após o lance (estimativa):</span><strong id="valPrazoPosLance" class="text-emerald-400">—</strong></div>
-<div id="linhaAposAntecipacao" class="flex justify-between py-1 border-b border-slate-800" style="display:none"><span class="text-slate-400" id="labelAposAntecipacao">2ª parcela em diante (antes da contemplação):</span><strong id="valAposAntecipacao">R$ 0</strong></div>
+                            <div id="linhaValorAntecipacao" class="flex justify-between py-1 border-b border-slate-800" style="display:none"><span class="text-slate-400" id="labelValorAntecipacao">Valor da antecipação:</span><strong id="valValorAntecipacao" class="text-emerald-400">R$ 0</strong></div>
+                            <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400" id="labelParcPre">Parcela antes da contemplação:</span><strong id="valParcRed">R$ 0</strong></div>
+                            <div id="linhaPrazoPosLance" class="flex justify-between py-1 border-b border-slate-800" style="display:none"><span class="text-slate-400">Prazo restante após o lance (estimativa):</span><strong id="valPrazoPosLance" class="text-emerald-400">—</strong></div>
+                            <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400" id="labelParcPos">Parcela após contemplação (hipótese):</span><strong id="valParcPos" class="text-emerald-400">R$ 0</strong></div>
                             <div id="linhaResumoPlano" class="py-2 text-xs text-slate-300 border-b border-slate-800"></div>
                             <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400">Lance com recurso próprio:</span> <strong id="valLanceProprio" class="text-white">R$ 0</strong></div>
                             <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400">Lance embutido:</span> <strong id="valLanceEmbutidoResumo" class="text-white">R$ 0</strong></div>
@@ -875,15 +874,6 @@
             document.getElementById('valUltParcBanco').textContent=fmt(fin.ultima);
             document.getElementById('valJurosBanco').textContent=fmt(fin.juros);
             document.getElementById('valCustoBanco').textContent=fmt(custoFin);
-            // A antecipação é parte da taxa administrativa total, não taxa extra.
-            // A parcela de referência da tabela comercial é a prestação sem o
-            // adicional concentrado na(s) primeira(s) parcela(s).
-            const aposAntecipacao=document.getElementById('linhaAposAntecipacao');
-            aposAntecipacao.style.display=mesesTaxaAntecipada>0?'flex':'none';
-            document.getElementById('valAposAntecipacao').textContent=fmt(parcelaReduzida);
-            document.getElementById('labelAposAntecipacao').textContent=mesesTaxaAntecipada>1
-              ? 'Após as primeiras '+mesesTaxaAntecipada+' parcelas (antes da contemplação):'
-              : '2ª parcela em diante (antes da contemplação):';
             document.getElementById('labelParcPos').textContent=modoAbate==='parcela'
               ? 'Parcela após contemplação — redução de parcela (hipótese):'
               : 'Parcela após contemplação — parcela mantida, prazo reduzido (hipótese):';
@@ -894,7 +884,12 @@
             if(planoSelecionado?.power)document.getElementById('linhaResumoPlano').textContent+=' | Plano Power: confirme vigência e disponibilidade do grupo antes de apresentar proposta.';
 
             if(!prazoPlanoValido)document.getElementById('linhaResumoPlano').textContent='ATENÇÃO: crédito ou prazo fora das condições cadastradas do Plano Power/tabela comercial. Resultados não válidos para proposta.';
-            document.getElementById('valParcRed').textContent=fmt(parcelaPre);
+            document.getElementById('linhaValorAntecipacao').style.display=mesesTaxaAntecipada>0?'flex':'none';
+            document.getElementById('valValorAntecipacao').textContent=fmt(totalTaxaAntecipada);
+            document.getElementById('labelValorAntecipacao').textContent=mesesTaxaAntecipada>1
+              ? 'Antecipação total (diluída em '+mesesTaxaAntecipada+' parcelas):'
+              : 'Valor da antecipação na 1ª parcela:';
+            document.getElementById('valParcRed').textContent=fmt(parcelaReduzida);
             document.getElementById('valParcPos').textContent=fmt(parcelaPos);
             document.getElementById('linhaPrazoPosLance').style.display=modoAbate==='prazo'?'flex':'none';
             document.getElementById('valPrazoPosLance').textContent=prazoRestante+' mês(es) restantes (redução de '+reducaoMeses+' mês(es))';
@@ -904,7 +899,7 @@
             document.getElementById('valCustoConsorcio').textContent=fmt(desembolsoCons);
             if(prazoPlanoValido&&credito>0)desenharGraficoComparativo(desembolsoCons,custoFin,prazoCons,prazoFin,valorEntrada,mesCont,parcelaReduzida,adicionalInicial,mesesTaxaAntecipada,parcelaPos,lanceProprioAplicado,sistema,principalFin,jurosAA);
             else {document.getElementById('graficoComparativo').replaceChildren();document.getElementById('graficoComparativoResumo').textContent='Ajuste o crédito ou prazo para exibir a comparação.';}
-            document.getElementById('labelParcPre').textContent=mesesTaxaAntecipada?`Parcela inicial com antecipação de ${planoSelecionado.antecipacao}%${mesesTaxaAntecipada>1?' (diluída em '+mesesTaxaAntecipada+' meses)':''}:`:(ativarRed?`Parcela reduzida até o mês ${mesCont}:`:'Parcela estimada antes da contemplação:');
+            document.getElementById('labelParcPre').textContent=ativarRed?`Parcela reduzida até o mês ${mesCont} (sem adicional de antecipação):`:'Parcela antes da contemplação (sem adicional de antecipação):';
             document.getElementById('divSubTituloFin').textContent=produto==='capital_giro'?`Empréstimo empresarial (${sistema.toUpperCase()})`:`Financiamento (${sistema.toUpperCase()})`;
             document.getElementById('cardTitle1').textContent='Diferença estimada de desembolso';
             document.getElementById('cardTitle2').textContent='Crédito líquido no consórcio';
