@@ -95,3 +95,42 @@ console.log('Gamma 30%, atualização imediata e recálculo do financiamento ver
 assert.match(html,/document\.addEventListener\('DOMContentLoaded',preencherOpcoesTabela\)/);
 for(const key of ['betha','alphaPlus','gamma','omega50','delta50'])assert.ok(tabela.imovel[key],'Plano imobiliário ausente: '+key);
 console.log('Inicialização independente e planos de imóveis conferidos.');
+
+
+// Etapa 1: auditoria de parcelas nominais do consórcio, sem alterar cálculos publicados.
+// Conferência independente da decomposição crédito + administração + reserva + seguro.
+function auditarParcelas({credito,prazo,adm,reserva=2.5,seguro=0.03,antecipacao=0,mesesAntecipacao=0,reducao=1}){
+  const principal=credito*(1+(adm+reserva)/100);
+  const totalSeguro=principal*seguro/100*prazo;
+  const total=principal+totalSeguro;
+  const antecipado=credito*antecipacao/100;
+  const regular=(total-antecipado)/prazo;
+  const reduzida=reducao<1?principal/prazo*reducao+totalSeguro/prazo-antecipado/prazo:regular;
+  const adicional=mesesAntecipacao?antecipado/mesesAntecipacao:0;
+  const cronograma=Array.from({length:prazo},(_,i)=>reduzida+(i<mesesAntecipacao?adicional:0));
+  return {total,antecipado,regular,reduzida,adicional,cronograma};
+}
+for(const [id,credito,prazo] of [
+  ['alphaPlus',300000,200],['betha',300000,200],
+  ['gamma',300000,200],['gamma12',100000,120],
+  ['omega50',300000,200],['delta50',300000,200]
+]){
+  const plano=tabela.imovel[id],idx=plano.prazos.indexOf(prazo);
+  assert.ok(idx>=0,'Prazo inválido na auditoria: '+id);
+  const x=auditarParcelas({credito,prazo,adm:plano.adm[idx],
+    antecipacao:plano.antecipacao,mesesAntecipacao:plano.mesesAntecipacao,
+    reducao:plano.reducao||1});
+  perto(x.cronograma[0],x.reduzida+x.adicional);
+  perto(x.cronograma.at(-1),x.reduzida);
+  perto(x.cronograma.reduce((a,b)=>a+b,0),
+    x.reduzida*prazo+x.antecipado,0.02);
+  if(!plano.reducao)perto(x.cronograma.reduce((a,b)=>a+b,0),x.total,0.02);
+  if(id==='gamma12'){
+    assert.equal(plano.mesesAntecipacao,12);
+    perto(x.cronograma[0]-x.cronograma[12],x.antecipado/12);
+  }
+}
+assert.match(html,/const parcelaRegular=\(totalPlano-totalTaxaAntecipada\)\/prazoCons/);
+assert.match(html,/const parcelaPre=parcelaReduzida\+adicionalInicial/);
+assert.match(html,/const pagoAntes=parcelaReduzida\*mesesAntes\+adicionalInicial\*mesesAntecipadosPagos/);
+console.log('Auditoria nominal de parcelas e antecipações: 6 planos, conservação de valores e Gamma 12 OK.');
