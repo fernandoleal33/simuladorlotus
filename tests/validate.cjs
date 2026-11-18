@@ -134,3 +134,62 @@ assert.match(html,/const parcelaRegular=\(totalPlano-totalTaxaAntecipada\)\/praz
 assert.match(html,/const parcelaPre=parcelaReduzida\+adicionalInicial/);
 assert.match(html,/const pagoAntes=parcelaReduzida\*mesesAntes\+adicionalInicial\*mesesAntecipadosPagos/);
 console.log('Auditoria nominal de parcelas e antecipações: 6 planos, conservação de valores e Gamma 12 OK.');
+
+
+// Auditoria transversal: todas as categorias, planos e prazos cadastrados.
+// Sem alterar o motor de cálculo nem inferir validade comercial de tabelas.
+let cenariosAuditados=0;
+const categoriasAuditadas=new Set();
+for(const [categoria,planos] of Object.entries(tabela)){
+  categoriasAuditadas.add(categoria);
+  assert.ok(Object.keys(planos).length>0,'Categoria sem planos: '+categoria);
+  for(const [id,plano] of Object.entries(planos)){
+    assert.equal(plano.prazos.length,plano.adm.length,categoria+'/'+id+': prazos/taxas desalinhados');
+    assert.ok(plano.prazos.length>0,categoria+'/'+id+': sem prazos');
+    assert.equal(new Set(plano.prazos).size,plano.prazos.length,categoria+'/'+id+': prazo repetido');
+    assert.ok(plano.prazos.every(p=>Number.isInteger(p)&&p>0&&p<=600),categoria+'/'+id+': prazo inválido');
+    assert.ok(plano.adm.every(a=>Number.isFinite(a)&&a>=0),categoria+'/'+id+': taxa inválida');
+    assert.ok(plano.antecipacao>=0&&Number.isFinite(plano.antecipacao),categoria+'/'+id+': antecipação inválida');
+    assert.ok(Number.isInteger(plano.mesesAntecipacao)&&plano.mesesAntecipacao>=0,categoria+'/'+id+': meses de antecipação inválidos');
+    assert.ok(plano.antecipacao===0||plano.mesesAntecipacao>0,categoria+'/'+id+': antecipação sem distribuição');
+    for(let i=0;i<plano.prazos.length;i++){
+      const prazo=plano.prazos[i],credito=plano.power?200000:100000;
+      const seguro=(categoria==='imovel'||(categoria==='capital_giro'&&!plano.power))?0.03:0.06;
+      const x=auditarParcelas({credito,prazo,adm:plano.adm[i],seguro,
+        antecipacao:plano.antecipacao,mesesAntecipacao:plano.mesesAntecipacao,
+        reducao:plano.reducao||1});
+      assert.ok(x.cronograma.every(v=>Number.isFinite(v)&&v>=0),categoria+'/'+id+': parcela negativa ou não finita');
+      perto(x.cronograma[0],x.reduzida+x.adicional);
+      perto(x.cronograma.at(-1),x.reduzida+(prazo<=plano.mesesAntecipacao?x.adicional:0));
+      perto(x.cronograma.reduce((a,b)=>a+b,0),
+        x.reduzida*prazo+x.adicional*Math.min(prazo,plano.mesesAntecipacao));
+      if(!plano.reducao&&plano.mesesAntecipacao<=prazo)
+        perto(x.cronograma.reduce((a,b)=>a+b,0),x.total);
+      if(plano.antecipacao===0){
+        perto(x.antecipado,0);perto(x.adicional,0);perto(x.regular,x.cronograma[0]);
+      }
+      if(plano.reducao){
+        assert.ok(plano.reducao>0&&plano.reducao<1,categoria+'/'+id+': redução fora da faixa');
+        assert.ok(x.reduzida<x.regular,categoria+'/'+id+': redução não diminui parcela regular');
+      }
+      if(plano.mesesAntecipacao>1&&prazo>plano.mesesAntecipacao)
+        perto(x.cronograma[0]-x.cronograma[plano.mesesAntecipacao],x.adicional);
+      cenariosAuditados++;
+    }
+    if(plano.power){
+      for(const credito of [69999,70000,99999,100000,149999,150000,300000,300001]){
+        const teto=credito<100000?80:credito<150000?100:120;
+        const elegiveis=plano.prazos.filter(p=>p<=teto&&credito>=70000&&credito<=300000);
+        for(const prazo of plano.prazos){
+          const valido=credito>=70000&&credito<=300000&&prazo<=teto;
+          assert.equal(elegiveis.includes(prazo),valido,categoria+'/'+id+': limite Power inconsistente');
+        }
+      }
+    }
+  }
+}
+assert.deepEqual([...categoriasAuditadas].sort(),['auto','capital_giro','embarcacao','imovel','luxo','maquinario','moto','pesados']);
+assert.match(html,/const seguroMensalPct=Math.max\(0,num\('seguroMensalPct',0\)\)/);
+assert.match(html,/const totalSeguro=\(credito\+totalAdm\+totalReserva\)\*\(seguroMensalPct\/100\)\*prazoCons/);
+assert.match(html,/const limitePower=credito<100000\?80:credito<150000\?100:120/);
+console.log('Auditoria de todas as categorias: '+categoriasAuditadas.size+' categorias, '+cenariosAuditados+' combinações plano/prazo, limites Power e antecipações verificadas.');
