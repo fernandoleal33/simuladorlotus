@@ -66,6 +66,15 @@ assert.match(html,/id="documentoCredito"/);
 assert.match(html,/function validarDocumentoCredito\(\)/);
 assert.match(html,/function exibirResultadoCreditoExterno\(\)/);
 assert.match(html,/function limparDadosConsultaCredito\(\)/);
+assert.match(html,/id="statusRestricaoCredito"/);
+assert.match(html,/id="resultadoRestricaoCredito"/);
+assert.match(html,/id="origemRestricaoCredito"/);
+assert.match(html,/id="confirmacaoRestricaoCredito"/);
+assert.match(html,/function registrarResultadoRestricaoCredito\(\)/);
+assert.match(html,/Nenhuma restrição encontrada no relatório/);
+assert.match(html,/Não consultado/);
+assert.match(html,/informado manualmente/);
+
 const validadoresCredito=html.match(/function validarCpfLocal\([\s\S]*?(?=\n        const fmt =)/);
 assert.ok(validadoresCredito,'Validação de documento ausente');
 const contextoCredito=vm.createContext({});
