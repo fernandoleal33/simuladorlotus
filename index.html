@@ -497,7 +497,7 @@
             return true;
         }
         function validarCnpjLocal(documento) {
-            if(!/^[A-Z0-9]{12}\d{2}$/.test(documento) || /^(.)\1{14}$/.test(documento))return false;
+            if(!/^[A-Z0-9]{12}\d{2}$/.test(documento) || /^(.)\1{13}$/.test(documento))return false;
             const numero=(c)=>c.charCodeAt(0)-48; // Compatível com CNPJ numérico e alfanumérico (A = 17).
             const calcularDigito=(corpo,pesos)=>{
                 let soma=0;
