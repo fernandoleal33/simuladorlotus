@@ -166,7 +166,7 @@ for(const [categoria,planos] of Object.entries(tabela)){
       if(!plano.reducao&&plano.mesesAntecipacao<=prazo)
         perto(x.cronograma.reduce((a,b)=>a+b,0),x.total);
       if(plano.antecipacao===0){
-        perto(x.antecipado,0);perto(x.adicional,0);perto(x.regular,x.cronograma[0]);
+        perto(x.antecipado,0);perto(x.adicional,0);perto(x.reduzida,x.cronograma[0]);
       }
       if(plano.reducao){
         assert.ok(plano.reducao>0&&plano.reducao<1,categoria+'/'+id+': redução fora da faixa');
