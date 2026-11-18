@@ -1002,7 +1002,8 @@
           const dado=historicoIndices[codigo];
           const campo=document.getElementById('taxaOficial');
           campo.readOnly=!!dado;
-          campo.value=dado?dado.anual.toFixed(2):'';
+          if(dado)campo.value=dado.anual.toFixed(2);
+          else if(codigo!=='manual')campo.value='';
           document.getElementById('statusIndice').textContent=dado?'Acumulado oficial dos últimos 12 meses: '+dado.anual.toFixed(2)+'%; competência mais recente: '+dado.data+'.':codigo==='manual'?'Taxa manual, não oficial.':'Consulta indisponível para este índice. Selecione Manual para usar uma hipótese.';
           calcularIndice();
         }
@@ -1217,6 +1218,106 @@
           try{await navigator.clipboard.writeText(link);document.getElementById('avisoGerador').textContent='Link copiado!';}
           catch(e){window.prompt('Copie seu link:',link);}
         }
+        // Apenas parâmetros financeiros e informações públicas do consultor entram no link.
+        const CAMPOS_LINK_SIMULACAO = [
+          'credito','prazoConsorcio','prazoFin','planoUnifisa','taxaAdmAnual','fundoReservaPct',
+          'seguroMensalPct','mesContemplacao','lanceLivre','lanceEmbutidoPct','tipoAbatimento',
+          'ativarReduzida','parcelaReduzida','entradaPct','jurosBanco','sistemaFin','bancoFin',
+          'bancoAuto','bancoEspecial','modalidadeEmprestimo','linhaCreditoRural','ajustarTaxaCenario',
+          'indiceOficial','taxaOficial','anosIndice','vincularPrazoPatrimonial','mesRetiradaIndice',
+          'valorizacaoIndice'
+        ];
+        function criarUrlSimulacaoAtual() {
+          const dados=validarConsultor(document.getElementById('nomeGerador').value,document.getElementById('telefoneGerador').value);
+          if(!dados)throw new Error('Informe o nome e o WhatsApp do consultor com DDD válidos.');
+          const url=new URL(window.location.origin+window.location.pathname);
+          url.searchParams.set('consultor',dados.nome);
+          url.searchParams.set('whatsapp',dados.numero);
+          url.searchParams.set('sim','1');
+          url.searchParams.set('produto',document.getElementById('produto').value);
+          for(const id of CAMPOS_LINK_SIMULACAO){
+            const el=document.getElementById(id);
+            if(!el)continue;
+            const valor=el.type==='checkbox'?(el.checked?'1':'0'):String(el.value||'');
+            if(valor.length>80)throw new Error('Há um campo com conteúdo grande demais para compartilhar.');
+            url.searchParams.set('s_'+id,valor);
+          }
+          url.hash='simulador';
+          return url.toString();
+        }
+        function gerarLinkSimulacao() {
+          const saida=document.getElementById('linkSimulacaoGerado');
+          const aviso=document.getElementById('avisoLinkSimulacao');
+          try{
+            calcular();
+            saida.value=criarUrlSimulacaoAtual();
+            aviso.textContent='Link pronto. O cliente verá os mesmos parâmetros e os valores serão recalculados quando abrir.';
+            return saida.value;
+          }catch(e){
+            saida.value='';
+            aviso.textContent=e.message||'Não foi possível gerar o link.';
+            return '';
+          }
+        }
+        async function copiarLinkSimulacao() {
+          const link=gerarLinkSimulacao();
+          if(!link)return;
+          try{
+            if(!navigator.clipboard?.writeText)throw new Error('Área de transferência indisponível.');
+            await navigator.clipboard.writeText(link);
+            document.getElementById('avisoLinkSimulacao').textContent='Link da simulação copiado. Pronto para enviar ao cliente.';
+          }catch(e){
+            window.prompt('Copie o link da simulação abaixo:',link);
+            document.getElementById('avisoLinkSimulacao').textContent='Selecione e copie o endereço exibido, se necessário.';
+          }
+        }
+        function enviarLinkSimulacaoWhatsApp(){
+          const link=gerarLinkSimulacao();
+          if(!link)return;
+          const texto='Olá! Segue sua simulação ilustrativa no SimuladorLotus. Abra o link para conferir os valores e as condições estimadas: '+link;
+          // Sem destinatário fixo: o consultor escolhe o contato do cliente.
+          window.open('https://api.whatsapp.com/send?text='+encodeURIComponent(texto),'_blank','noopener,noreferrer');
+        }
+        function aplicarSimulacaoCompartilhada() {
+          const q=new URLSearchParams(window.location.search);
+          if(q.get('sim')!=='1')return;
+          const produto=document.getElementById('produto');
+          const valorProduto=q.get('produto');
+          if(!Array.from(produto.options).some(op=>op.value===valorProduto))return;
+          produto.value=valorProduto;
+          mudarProduto();
+          const restaurar=(id)=>{
+            const valor=q.get('s_'+id);
+            if(valor===null||valor.length>80)return;
+            const el=document.getElementById(id);
+            if(!el)return;
+            if(el.type==='checkbox'){el.checked=valor==='1';return;}
+            if(el.tagName==='SELECT'){
+              if(Array.from(el.options).some(op=>op.value===valor))el.value=valor;
+              return;
+            }
+            if(el.type==='number' && valor!=='' && !/^-?\d+(?:[.,]\d+)?$/.test(valor))return;
+            if(['credito','lanceLivre'].includes(id) && !/^[0-9.,]*$/.test(valor))return;
+            el.value=valor;
+          };
+          // A seleção do produto preenche menus dinâmicos; a tabela selecionada vem antes da taxa.
+          for(const id of ['credito','prazoConsorcio','planoUnifisa'])restaurar(id);
+          if(document.getElementById('planoUnifisa').value)aplicarTabelaUnifisa();
+          restaurar('modalidadeEmprestimo');
+          if(valorProduto==='capital_giro')atualizarEmprestimoEmpresarial();
+          restaurar('bancoFin');restaurar('bancoAuto');restaurar('bancoEspecial');
+          for(const id of CAMPOS_LINK_SIMULACAO){
+            if(['credito','prazoConsorcio','planoUnifisa','modalidadeEmprestimo','bancoFin','bancoAuto','bancoEspecial'].includes(id))continue;
+            restaurar(id);
+          }
+          document.getElementById('subBlocoReduzida').style.display=document.getElementById('ativarReduzida').checked?'block':'none';
+          if(valorProduto==='investimento'){
+            if(document.getElementById('indiceOficial').value==='manual')calcularIndice();
+            else atualizarIndice();
+          }
+          calcular();
+          document.getElementById('avisoLinkSimulacao').textContent='Simulação compartilhada carregada. Os valores são ilustrativos e podem variar conforme as condições atualizadas.';
+        }
         function aplicarConsultor(){
           const q=new URLSearchParams(window.location.search);
           consultorAtual=validarConsultor(q.get('consultor'),q.get('whatsapp'))||validarConsultor(consultorPadrao.nome,consultorPadrao.numero);
@@ -1274,6 +1375,7 @@
             }
             // Atualiza os valores visíveis também no primeiro carregamento.
             calcular();
+            aplicarSimulacaoCompartilhada();
         };
 
     </script>
