@@ -487,7 +487,7 @@
 
         // Pré-análise cadastral local. Não consulta bureaus nem transmite CPF/CNPJ.
         function validarCpfLocal(documento) {
-            if(!/^\\d{11}$/.test(documento) || /^(.)\\1{10}$/.test(documento))return false;
+            if(!/^\d{11}$/.test(documento) || /^(.)\1{10}$/.test(documento))return false;
             for(const pos of [9,10]){
                 let soma=0;
                 for(let i=0;i<pos;i++)soma+=Number(documento[i])*(pos+1-i);
@@ -497,7 +497,7 @@
             return true;
         }
         function validarCnpjLocal(documento) {
-            if(!/^[A-Z0-9]{12}\\d{2}$/.test(documento) || /^(.)\\1{14}$/.test(documento))return false;
+            if(!/^[A-Z0-9]{12}\d{2}$/.test(documento) || /^(.)\1{14}$/.test(documento))return false;
             const numero=(c)=>c.charCodeAt(0)-48; // Compatível com CNPJ numérico e alfanumérico (A = 17).
             const calcularDigito=(corpo,pesos)=>{
                 let soma=0;
@@ -512,7 +512,7 @@
         function validarDocumentoCredito() {
             const documento=document.getElementById('documentoCredito').value.toUpperCase().replace(/[^A-Z0-9]/g,'');
             const status=document.getElementById('statusDocumentoCredito');
-            const tipo=documento.length===11 && /^\\d+$/.test(documento)?'CPF':documento.length===14?'CNPJ':'';
+            const tipo=documento.length===11 && /^\d+$/.test(documento)?'CPF':documento.length===14?'CNPJ':'';
             const valido=tipo==='CPF'?validarCpfLocal(documento):tipo==='CNPJ'?validarCnpjLocal(documento):false;
             status.textContent=valido
                 ? tipo+' com dígitos verificadores válidos. Isso não comprova existência, situação cadastral, score, rating ou aprovação.'
