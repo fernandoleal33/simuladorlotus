@@ -58,6 +58,33 @@ assert.deepEqual(Object.keys(sim(0,12,360,'sac')).sort(),['juros','primeira','to
 for(const id of ['produto','credito','prazoConsorcio','prazoFin','entradaPct','sistemaFin','bancoFin','bancoAuto','indiceOficial','resultadoIndice','valCustoBanco','telefoneBotao','linkGerado']){
  assert.ok(html.includes('id="'+id+'"'),'Campo ausente: '+id);
 }
+assert.match(html,/Valor de Entrada:<\/span>\s*<strong id="valEntradaFin"/);
+assert.doesNotMatch(html,/Valor de Entrada Exigido|Valor de Entrada Obrigatória no Banco/);
+assert.match(html,/id="painelConsultaCredito"/);
+assert.match(html,/Não há consulta automática de crédito/);
+assert.match(html,/id="documentoCredito"/);
+assert.match(html,/function validarDocumentoCredito\(\)/);
+assert.match(html,/function exibirResultadoCreditoExterno\(\)/);
+assert.match(html,/function limparDadosConsultaCredito\(\)/);
+const validadoresCredito=html.match(/function validarCpfLocal\([\s\S]*?(?=\n        const fmt =)/);
+assert.ok(validadoresCredito,'Validação de documento ausente');
+const contextoCredito=vm.createContext({});
+vm.runInContext(validadoresCredito[0],contextoCredito);
+assert.equal(contextoCredito.validarCpfLocal('52998224725'),true,'CPF de exemplo válido');
+assert.equal(contextoCredito.validarCpfLocal('11111111111'),false,'CPF com repetição');
+assert.equal(contextoCredito.validarCpfLocal('52998224724'),false,'CPF com dígito errado');
+assert.equal(contextoCredito.validarCnpjLocal('11222333000181'),true,'CNPJ numérico de exemplo válido');
+assert.equal(contextoCredito.validarCnpjLocal('00000000000000'),false,'CNPJ com repetição');
+assert.equal(contextoCredito.validarCnpjLocal('11222333000182'),false,'CNPJ com dígito errado');
+const pesosCnpj1=[5,4,3,2,9,8,7,6,5,4,3,2];
+const pesosCnpj2=[6,5,4,3,2,9,8,7,6,5,4,3,2];
+const digitoCnpjTeste=(txt,pesos)=>{const resto=txt.split('').reduce((sum,v,i)=>sum+(v.charCodeAt(0)-48)*pesos[i],0)%11;return String(resto<2?0:11-resto);};
+const raizCnpjAlfa='ABCDEF120001';
+const digito1=digitoCnpjTeste(raizCnpjAlfa,pesosCnpj1);
+const cnpjAlfanumericoTeste=raizCnpjAlfa+digito1+digitoCnpjTeste(raizCnpjAlfa+digito1,pesosCnpj2);
+assert.equal(contextoCredito.validarCnpjLocal(cnpjAlfanumericoTeste),true,'CNPJ alfanumérico válido');
+console.log('Pré-análise: rótulo da entrada e CPF/CNPJ (inclusive alfanumérico) verificados.');
+
 assert.match(html,/function enviarWhatsApp\(\)/);
 assert.match(html,/https:\/\/wa\.me\/'\+consultorAtual\.numero/);
 assert.match(html,/encodeURIComponent\(textoProposta\(\)\)/);
