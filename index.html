@@ -410,8 +410,8 @@
 
                 <!-- Pré-análise: documento verificado apenas no navegador; sem envio para API -->
                 <section id="painelConsultaCredito" class="bg-slate-800/60 border border-slate-700/60 p-5 rounded-2xl space-y-3" aria-label="Pré-análise cadastral e consulta de crédito">
-                    <h3 class="text-sm font-semibold text-white">Pré-análise cadastral e crédito — CPF / CNPJ</h3>
-                    <p class="text-xs text-slate-300 leading-relaxed">Valide os dígitos verificadores do documento aqui mesmo e acesse um provedor autorizado para consultar score e rating. <strong>Não há consulta automática de crédito neste simulador.</strong></p>
+                    <h3 class="text-sm font-semibold text-white">Verificação de restrições — CPF / CNPJ</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">Valide o documento e consulte as informações de restrições em um fornecedor autorizado. Depois, registre o resultado do relatório abaixo. <strong>O simulador não realiza consultas automáticas nem confirma a ausência de restrições.</strong></p>
                     <label for="documentoCredito" class="block text-xs font-medium text-slate-300">CPF ou CNPJ (incluindo CNPJ alfanumérico)</label>
                     <input id="documentoCredito" type="text" maxlength="20" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Digite o CPF ou CNPJ" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white" aria-describedby="privacidadeConsultaCredito">
                     <div class="flex flex-wrap items-center gap-2">
@@ -423,8 +423,30 @@
                         <a href="https://empresas.serasaexperian.com.br/consulta-serasa" target="_blank" rel="noopener noreferrer" class="text-emerald-300 underline">Consultar na Serasa Empresas</a>
                         <a href="https://www.equifax.com.br/negocios/concessao-de-credito/" target="_blank" rel="noopener noreferrer" class="text-emerald-300 underline">Consultar na Equifax BoaVista</a>
                     </div>
+                    <div class="bg-slate-900/80 border border-slate-700 p-3 rounded-lg space-y-3">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-200">Situação de restrições</p>
+                            <p id="statusRestricaoCredito" role="status" aria-live="polite" class="text-sm font-bold text-amber-200 mt-1">Não consultado</p>
+                            <p class="text-[11px] text-slate-400 mt-1">Somente resultados informados manualmente com base em relatório externo. A abrangência depende da fonte consultada.</p>
+                        </div>
+                        <label for="resultadoRestricaoCredito" class="block text-xs font-medium text-slate-300">Resultado encontrado no relatório</label>
+                        <select id="resultadoRestricaoCredito" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm">
+                            <option value="nao-consultado">Ainda não consultei</option>
+                            <option value="com-restricoes">Há restrições registradas</option>
+                            <option value="sem-restricoes">Não foram encontradas restrições no relatório</option>
+                        </select>
+                        <label for="origemRestricaoCredito" class="block text-xs font-medium text-slate-300">Fonte consultada</label>
+                        <select id="origemRestricaoCredito" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm">
+                            <option value="">Selecione a fonte do relatório</option>
+                            <option value="Serasa Experian">Serasa Experian</option>
+                            <option value="Equifax BoaVista">Equifax BoaVista</option>
+                            <option value="Outro fornecedor autorizado">Outro fornecedor autorizado</option>
+                        </select>
+                        <label class="flex items-start gap-2 text-xs text-slate-300"><input id="confirmacaoRestricaoCredito" type="checkbox" class="mt-0.5"> Confirmo que realizei uma consulta legítima e estou registrando o resultado de um relatório real.</label>
+                        <button type="button" onclick="registrarResultadoRestricaoCredito()" class="bg-emerald-700 hover:bg-emerald-600 rounded-lg py-2 px-3 text-white text-xs font-semibold">Registrar resultado informado</button>
+                    </div>
                     <details class="border border-slate-700 rounded-lg p-3">
-                        <summary class="text-xs font-semibold text-slate-200 cursor-pointer">Registrar dados de um relatório externo (opcional)</summary>
+                        <summary class="text-xs font-semibold text-slate-200 cursor-pointer">Informações adicionais do relatório (score e rating opcionais)</summary>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
                             <div><label for="fonteCredito" class="block text-xs text-slate-300 mb-1">Fonte do relatório</label><select id="fonteCredito" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-sm text-white"><option value="Serasa Experian">Serasa Experian</option><option value="Equifax BoaVista">Equifax BoaVista</option><option value="Outra fonte">Outra fonte</option></select></div>
                             <div><label for="scoreCreditoExterno" class="block text-xs text-slate-300 mb-1">Score informado</label><input id="scoreCreditoExterno" type="number" min="0" step="1" placeholder="Se disponível" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-sm text-white"></div>
@@ -434,7 +456,7 @@
                         <p id="resultadoCreditoExterno" role="status" class="text-xs text-slate-300 mt-2" aria-live="polite">Nenhum relatório registrado nesta sessão.</p>
                         <p class="text-[11px] text-slate-400 mt-2">Score e rating exibidos aqui são digitados manualmente, não calculados ou verificados pelo SimuladorLotus. Escalas e critérios variam conforme o provedor.</p>
                     </details>
-                    <p id="privacidadeConsultaCredito" class="text-[11px] text-slate-400 leading-relaxed">Privacidade: o documento e os dados do relatório permanecem somente nesta página, sem envio automático, sem gravação local e sem inclusão na proposta do simulador. Use consultas externas apenas para finalidades legítimas e conforme os requisitos legais e contratuais do fornecedor.</p>
+                    <p id="privacidadeConsultaCredito" class="text-[11px] text-slate-400 leading-relaxed">Privacidade: o documento e os dados informados permanecem somente nesta página, sem envio automático, sem gravação local e sem inclusão na proposta do simulador. Realize consultas externas somente para finalidades legítimas e conforme os requisitos legais e contratuais do fornecedor.</p>
                 </section>
 
                 <!-- Investment Yield Explanation Box -->
@@ -531,10 +553,34 @@
             const fonte=document.getElementById('fonteCredito').value;
             resultado.textContent='Informado manualmente ('+fonte+'): score '+(score===null?'não informado':score)+' | rating '+(rating||'não informado')+'. Sem verificação automática ou decisão de crédito.';
         }
+        function registrarResultadoRestricaoCredito() {
+            const tipo=document.getElementById('resultadoRestricaoCredito').value;
+            const origem=document.getElementById('origemRestricaoCredito').value;
+            const confirmacao=document.getElementById('confirmacaoRestricaoCredito').checked;
+            const status=document.getElementById('statusRestricaoCredito');
+            if(tipo==='nao-consultado') {
+                status.textContent='Não consultado';
+                status.className='text-sm font-bold text-amber-200 mt-1';
+                return;
+            }
+            if(!confirmacao || !origem) {
+                status.textContent='Selecione a fonte e confirme que consultou um relatório real.';
+                status.className='text-sm font-bold text-amber-200 mt-1';
+                return;
+            }
+            const possui=tipo==='com-restricoes';
+            status.textContent=(possui?'Possui restrições':'Nenhuma restrição encontrada no relatório')+' — informado manualmente ('+origem+').';
+            status.className=possui?'text-sm font-bold text-red-300 mt-1':'text-sm font-bold text-emerald-300 mt-1';
+        }
         function limparDadosConsultaCredito() {
             for(const id of ['documentoCredito','scoreCreditoExterno','ratingCreditoExterno'])document.getElementById(id).value='';
             document.getElementById('statusDocumentoCredito').textContent='Documento não informado. A validação local não equivale a uma consulta cadastral.';
             document.getElementById('resultadoCreditoExterno').textContent='Nenhum relatório registrado nesta sessão.';
+            document.getElementById('resultadoRestricaoCredito').value='nao-consultado';
+            document.getElementById('origemRestricaoCredito').value='';
+            document.getElementById('confirmacaoRestricaoCredito').checked=false;
+            document.getElementById('statusRestricaoCredito').textContent='Não consultado';
+            document.getElementById('statusRestricaoCredito').className='text-sm font-bold text-amber-200 mt-1';
         }
 
         const fmt = (v) => (Number.isFinite(v) ? v : 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
