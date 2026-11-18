@@ -62,7 +62,8 @@ assert.match(html,/function enviarWhatsApp\(\)/);
 assert.match(html,/https:\/\/wa\.me\/'\+consultorAtual\.numero/);
 assert.match(html,/encodeURIComponent\(textoProposta\(\)\)/);
 assert.match(html,/contemplação não é garantida/i);
-assert.match(html,/Os bancos possuem encargos e taxas\. Consulte o seu banco para ter uma precisão melhor\./);
+assert.match(html,/Esta simulação não inclui taxas adicionais, seguros e tarifas\./);
+assert.match(html,/Custo total estimado:<\/span>\s*<strong id="valCustoConsorcio"/);
 assert.doesNotMatch(html,/id="painelReajusteFin"|id="encargosAutomaticos"|id="valEncargosFin"/);
 console.log('Financiamento SAC/Price, campos, aviso e WhatsApp: verificações estáticas e matemáticas OK.');
 
