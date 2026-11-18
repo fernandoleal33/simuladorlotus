@@ -895,7 +895,7 @@
             document.getElementById('valParcelaComAntecipacao').textContent=fmt(parcelaPre);
             document.getElementById('labelParcPre').textContent=mesesTaxaAntecipada>1
               ? 'Parcela mensal sem antecipação (a partir do '+(mesesTaxaAntecipada+1)+'º mês):'
-              : (ativarRed?'Parcela mensal reduzida (sem antecipação):':'Parcela mensal (sem antecipação):');
+              : (ativarRed?'Parcela mensal reduzida:':'Parcela mensal:');
             document.getElementById('valParcRed').textContent=fmt(parcelaReduzida);
             document.getElementById('valParcPos').textContent=fmt(parcelaPos);
             document.getElementById('linhaPrazoPosLance').style.display=modoAbate==='prazo'?'flex':'none';
