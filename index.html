@@ -393,6 +393,7 @@
                         <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-2">
                             <p class="text-red-400 font-semibold text-xs uppercase mb-2" id="divSubTituloFin">Financiamento Bancário (Com Entrada)</p>
                             <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400">Valor de Entrada Exigido:</span> <strong id="valEntradaFin">R$ 0</strong></div>
+                            <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400">Valor efetivamente financiado:</span> <strong id="valPrincipalFin">R$ 0</strong></div>
                             <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400">Parcela inicial:</span> <strong id="valParcBanco">R$ 0</strong></div>
                             <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400">Última parcela (estimada):</span> <strong id="valUltParcBanco">R$ 0</strong></div>
                             <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400">Total de juros:</span> <strong id="valJurosBanco" class="text-red-400">R$ 0</strong></div>
@@ -871,6 +872,7 @@
             document.getElementById('valLanceEmbutidoText').textContent=`Valor estimado do lance embutido: ${fmt(lanceEmbutido)} | Crédito líquido: ${fmt(creditoLiquido)}`;
             document.getElementById('valEntradaText').textContent=`Entrada estimada: ${fmt(valorEntrada)} (${fmtPct(valorEntradaPct)})`;
             document.getElementById('valEntradaFin').textContent=`${fmt(valorEntrada)} (${fmtPct(valorEntradaPct)})`;
+            document.getElementById('valPrincipalFin').textContent=fmt(principalFin);
             document.getElementById('valParcBanco').textContent=fmt(fin.primeira);
             document.getElementById('valUltParcBanco').textContent=fmt(fin.ultima);
             document.getElementById('valJurosBanco').textContent=fmt(fin.juros);
