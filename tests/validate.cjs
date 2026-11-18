@@ -60,39 +60,75 @@ for(const id of ['produto','credito','prazoConsorcio','prazoFin','entradaPct','s
 }
 assert.match(html,/Valor de Entrada:<\/span>\s*<strong id="valEntradaFin"/);
 assert.doesNotMatch(html,/Valor de Entrada Exigido|Valor de Entrada Obrigatória no Banco/);
-assert.match(html,/id="painelConsultaCredito"/);
-assert.match(html,/Não há consulta automática de crédito/);
-assert.match(html,/id="documentoCredito"/);
-assert.match(html,/function validarDocumentoCredito\(\)/);
-assert.match(html,/function exibirResultadoCreditoExterno\(\)/);
-assert.match(html,/function limparDadosConsultaCredito\(\)/);
-assert.match(html,/id="statusRestricaoCredito"/);
-assert.match(html,/id="resultadoRestricaoCredito"/);
-assert.match(html,/id="origemRestricaoCredito"/);
-assert.match(html,/id="confirmacaoRestricaoCredito"/);
-assert.match(html,/function registrarResultadoRestricaoCredito\(\)/);
-assert.match(html,/Nenhuma restrição encontrada no relatório/);
-assert.match(html,/Não consultado/);
-assert.match(html,/informado manualmente/);
-
-const validadoresCredito=html.match(/function validarCpfLocal\([\s\S]*?(?=\n        const fmt =)/);
-assert.ok(validadoresCredito,'Validação de documento ausente');
-const contextoCredito=vm.createContext({});
-vm.runInContext(validadoresCredito[0],contextoCredito);
-assert.equal(contextoCredito.validarCpfLocal('52998224725'),true,'CPF de exemplo válido');
-assert.equal(contextoCredito.validarCpfLocal('11111111111'),false,'CPF com repetição');
-assert.equal(contextoCredito.validarCpfLocal('52998224724'),false,'CPF com dígito errado');
-assert.equal(contextoCredito.validarCnpjLocal('11222333000181'),true,'CNPJ numérico de exemplo válido');
-assert.equal(contextoCredito.validarCnpjLocal('00000000000000'),false,'CNPJ com repetição');
-assert.equal(contextoCredito.validarCnpjLocal('11222333000182'),false,'CNPJ com dígito errado');
-const pesosCnpj1=[5,4,3,2,9,8,7,6,5,4,3,2];
-const pesosCnpj2=[6,5,4,3,2,9,8,7,6,5,4,3,2];
-const digitoCnpjTeste=(txt,pesos)=>{const resto=txt.split('').reduce((sum,v,i)=>sum+(v.charCodeAt(0)-48)*pesos[i],0)%11;return String(resto<2?0:11-resto);};
-const raizCnpjAlfa='ABCDEF120001';
-const digito1=digitoCnpjTeste(raizCnpjAlfa,pesosCnpj1);
-const cnpjAlfanumericoTeste=raizCnpjAlfa+digito1+digitoCnpjTeste(raizCnpjAlfa+digito1,pesosCnpj2);
-assert.equal(contextoCredito.validarCnpjLocal(cnpjAlfanumericoTeste),true,'CNPJ alfanumérico válido');
-console.log('Pré-análise: rótulo da entrada e CPF/CNPJ (inclusive alfanumérico) verificados.');
+// Compartilhamento de cenário real: não apenas link genérico do consultor.
+for(const id of ['linkSimulacaoGerado','avisoLinkSimulacao']){
+ assert.ok(html.includes('id="'+id+'"'),'Campo de link ausente: '+id);
+}
+assert.doesNotMatch(html,/id="painelConsultaCredito"|function registrarResultadoRestricaoCredito/);
+assert.match(html,/function criarUrlSimulacaoAtual\(\)/);
+assert.match(html,/function gerarLinkSimulacao\(\)/);
+assert.match(html,/function copiarLinkSimulacao\(\)/);
+assert.match(html,/function enviarLinkSimulacaoWhatsApp\(\)/);
+assert.match(html,/function aplicarSimulacaoCompartilhada\(\)/);
+assert.match(html,/aplicarSimulacaoCompartilhada\(\);\s*\n\s*};/);
+assert.match(html,/api\.whatsapp\.com\/send\?text=/);
+assert.match(html,/else if\(codigo!=='manual'\)campo\.value=''/);
+const inicioLink=html.indexOf('const CAMPOS_LINK_SIMULACAO =');
+const fimLink=html.indexOf('function aplicarConsultor(){',inicioLink);
+assert.ok(inicioLink>0&&fimLink>inicioLink,'Funções de links compartilhados não encontradas');
+const camposLink=new Map([
+ ['nomeGerador',{value:'Fernando Leal'}],
+ ['telefoneGerador',{value:'(11) 94766-2843'}],
+ ['produto',{value:'auto',tagName:'SELECT',options:[{value:'auto'},{value:'imovel'}]}],
+ ['credito',{value:'125.000,00',type:'text'}],
+ ['prazoConsorcio',{value:'80',type:'number'}],
+ ['prazoFin',{value:'60',type:'number'}],
+ ['planoUnifisa',{value:'gamma',tagName:'SELECT',options:[{value:''},{value:'gamma'}]}],
+ ['lanceLivre',{value:'10.000,00',type:'text'}],
+ ['ajustarTaxaCenario',{checked:true,type:'checkbox'}],
+ ['ativarReduzida',{checked:false,type:'checkbox'}],
+ ['subBlocoReduzida',{style:{display:'none'}}],
+ ['avisoLinkSimulacao',{textContent:''}],
+ ['linkSimulacaoGerado',{value:''}]
+]);
+const localTeste={origin:'https://fernandoleal33.github.io',pathname:'/simuladorlotus/',search:''};
+const ambienteCompartilhamento=vm.createContext({
+ window:{location:localTeste,open:()=>{}},
+ document:{getElementById:id=>camposLink.get(id)||null},
+ URL, URLSearchParams,
+ navigator:{clipboard:{writeText:async()=>{}}},
+ calcular:()=>{},
+ mudarProduto:()=>{camposLink.get('credito').value='70.000,00';camposLink.get('prazoConsorcio').value='60';},
+ aplicarTabelaUnifisa:()=>{},
+ atualizarEmprestimoEmpresarial:()=>{},
+ calcularIndice:()=>{},
+ atualizarIndice:()=>{},
+ validarConsultor:(nome,numero)=>({nome,numero:'5511947662843'})
+});
+vm.runInContext(html.slice(inicioLink,fimLink),ambienteCompartilhamento);
+const enderecoGerado=new URL(ambienteCompartilhamento.criarUrlSimulacaoAtual());
+assert.equal(enderecoGerado.pathname,'/simuladorlotus/');
+assert.equal(enderecoGerado.searchParams.get('consultor'),'Fernando Leal');
+assert.equal(enderecoGerado.searchParams.get('sim'),'1');
+assert.equal(enderecoGerado.searchParams.get('produto'),'auto');
+assert.equal(enderecoGerado.searchParams.get('s_credito'),'125.000,00');
+assert.equal(enderecoGerado.searchParams.get('s_planoUnifisa'),'gamma');
+assert.equal(enderecoGerado.searchParams.get('s_lanceLivre'),'10.000,00');
+assert.equal(enderecoGerado.searchParams.get('s_ajustarTaxaCenario'),'1');
+assert.equal(enderecoGerado.hash,'#simulador');
+assert.ok(!enderecoGerado.toString().includes('CPF'),'Link não deve incluir CPF');
+camposLink.get('produto').value='imovel';
+camposLink.get('credito').value='300.000,00';
+camposLink.get('planoUnifisa').value='';
+localTeste.search=enderecoGerado.search;
+ambienteCompartilhamento.aplicarSimulacaoCompartilhada();
+assert.equal(camposLink.get('produto').value,'auto');
+assert.equal(camposLink.get('credito').value,'125.000,00');
+assert.equal(camposLink.get('prazoConsorcio').value,'80');
+assert.equal(camposLink.get('planoUnifisa').value,'gamma');
+assert.equal(camposLink.get('lanceLivre').value,'10.000,00');
+assert.equal(camposLink.get('ajustarTaxaCenario').checked,true);
+console.log('Link da simulação: geração e abertura com valores, plano e lances preservados.');
 
 assert.match(html,/function enviarWhatsApp\(\)/);
 assert.match(html,/https:\/\/wa\.me\/'\+consultorAtual\.numero/);
