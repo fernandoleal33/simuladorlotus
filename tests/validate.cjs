@@ -75,6 +75,18 @@ for(const fn of ['gerarLinkCompartilhamento','copiarLinkCompartilhamento','envia
 assert.match(html,/aplicarSimulacaoCompartilhada\(\);\s*\n\s*};/);
 assert.match(html,/api\.whatsapp\.com\/send\?text=/);
 assert.match(html,/else if\(codigo!=='manual'\)campo\.value=''/);
+const inicioValidadorConsultor=html.indexOf('function validarConsultor(nome, telefone) {');
+const fimValidadorConsultor=html.indexOf('        // Apenas parâmetros financeiros',inicioValidadorConsultor);
+assert.ok(inicioValidadorConsultor>=0 && fimValidadorConsultor>inicioValidadorConsultor,'Validador do consultor ausente');
+const contextoValidador=vm.createContext({});
+vm.runInContext(html.slice(inicioValidadorConsultor,fimValidadorConsultor),contextoValidador);
+const validarConsultorReal=contextoValidador.validarConsultor;
+assert.equal(validarConsultorReal('Fernando Leal','(11) 94766-2843')?.numero,'5511947662843');
+assert.equal(validarConsultorReal('Fernando Leal','11947662843')?.numero,'5511947662843');
+assert.equal(validarConsultorReal('Fernando Leal','+55 11 94766-2843')?.numero,'5511947662843');
+assert.equal(validarConsultorReal('Consultor Teste','(11) 98888-7777')?.numero,'5511988887777');
+assert.equal(validarConsultorReal('Fernando Leal','número inválido'),null);
+assert.equal(validarConsultorReal('Fernando Leal',''),null);
 const inicioLink=html.indexOf('const CAMPOS_LINK_SIMULACAO =');
 const fimLink=html.indexOf('function aplicarConsultor(){',inicioLink);
 assert.ok(inicioLink>0&&fimLink>inicioLink,'Funções de compartilhamento não encontradas');
@@ -108,12 +120,7 @@ const ambienteCompartilhamento=vm.createContext({
  atualizarEmprestimoEmpresarial:()=>{},
  calcularIndice:()=>{},
  atualizarIndice:()=>{},
- validarConsultor:(nome,telefone)=>{
-  const digitos=String(telefone||'').replace(/\D/g,'');
-  if(!nome||digitos.length<10)return null;
-  const local=digitos.length===11?digitos:digitos.slice(2);
-  return {nome,numero:digitos.length===11?'55'+digitos:digitos,formatado:'('+local.slice(0,2)+') '+local.slice(2,-4)+'-'+local.slice(-4)};
- }
+ validarConsultor:validarConsultorReal
 });
 vm.runInContext(html.slice(inicioLink,fimLink),ambienteCompartilhamento);
 const linkOriginal=ambienteCompartilhamento.gerarLinkCompartilhamento();
