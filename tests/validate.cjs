@@ -291,6 +291,11 @@ console.log('IOF, seguros, tarifas, saldo financiado e desembolso total conferid
 assert.match(html,/id="blocoEncargosFinanciamento" hidden aria-hidden="true" style="display:none"/);
 assert.ok(!html.includes('Detalhar seguros e tarifas (estimativas editáveis)'));
 assert.ok(!html.includes('IOF, seguros e tarifas do financiamento</h3>'));
+assert.match(html,/id="blocoTipoImovelFin"/);
+assert.match(html,/onchange="alterarTipoImovelFin\(\)"/);
+assert.match(html,/id="blocoTomadorFin"/);
+assert.match(html,/onchange="alterarPerfilTomadorFin\(\)"/);
+assert.match(html,/iofPendente\?'A confirmar':fmt\(custosFin\.iof\)/);
 console.log('Interface financeira compacta verificada.');
 
 
@@ -344,6 +349,7 @@ const camposLink=new Map([
  ['financiarEncargosFin',{checked:true,type:'checkbox'}],
  ['encargosAutomaticosFin',{checked:true,type:'checkbox'}],
  ['tipoImovelFin',{value:'sfh',tagName:'SELECT',options:[{value:'sfh'},{value:'sfi'},{value:'comercial'}]}],
+ ['perfilTomadorFin',{value:'pf',tagName:'SELECT',options:[{value:'pf'},{value:'pj'}]}],
  ['notaBaseEncargosFin',{textContent:''}]
 ]);
 let calculosCompartilhamento=0;
@@ -382,6 +388,7 @@ assert.equal(enderecoGerado.searchParams.get('s_tarifaAvaliacaoFin'),'500');
 assert.equal(enderecoGerado.searchParams.get('s_financiarEncargosFin'),'1');
 assert.equal(enderecoGerado.searchParams.get('s_encargosAutomaticosFin'),'1');
 assert.equal(enderecoGerado.searchParams.get('s_tipoImovelFin'),'sfh');
+assert.equal(enderecoGerado.searchParams.get('s_perfilTomadorFin'),'pf');
 assert.equal(enderecoGerado.hash,'#simulador');
 assert.ok(!enderecoGerado.toString().includes('CPF'),'Não compartilhar documentos pessoais');
 assert.equal(calculosCompartilhamento,1);
@@ -409,6 +416,7 @@ assert.equal(camposLink.get('tarifaAvaliacaoFin').value,'500');
 assert.equal(camposLink.get('financiarEncargosFin').checked,true);
 assert.equal(camposLink.get('encargosAutomaticosFin').checked,true);
 assert.equal(camposLink.get('tipoImovelFin').value,'sfh');
+assert.equal(camposLink.get('perfilTomadorFin').value,'pf');
 assert.equal(calculosCompartilhamento,3,'Recalcula cenário na abertura');
 camposLink.get('tipoLinkGerador').value='simulador';
 camposLink.get('nomeGerador').value='Outro Consultor';
@@ -428,7 +436,7 @@ assert.doesNotMatch(html,/Testar Envio via WhatsApp|id="telefoneBotao"|function 
 assert.match(html,/const consultorPadrao = \{nome:'Fernando Leal',numero:'5511947662843'\}/);
 assert.match(html,/Consultor: '\+dados\.nome\+' \| WhatsApp: '\+dados\.formatado/);
 assert.match(html,/contemplação no mês escolhido é apenas uma hipótese matemática, nunca uma promessa/i);
-assert.match(html,/Valores estimados; R\$ 0 pode indicar custo não identificado, não isenção/);
+assert.match(html,/Valores estimados; “A confirmar” não integra o total/);
 assert.doesNotMatch(html,/Esta simulação não inclui taxas adicionais, seguros e tarifas\./);
 assert.match(html,/Custo total estimado:<\/span>\s*<strong id="valCustoConsorcio"/);
 assert.doesNotMatch(html,/id="painelReajusteFin"|id="encargosAutomaticos"|id="valEncargosFin"/);
