@@ -77,8 +77,8 @@ const inicioLink=html.indexOf('const CAMPOS_LINK_SIMULACAO =');
 const fimLink=html.indexOf('function aplicarConsultor(){',inicioLink);
 assert.ok(inicioLink>0&&fimLink>inicioLink,'Funções de links compartilhados não encontradas');
 const camposLink=new Map([
- ['nomeGerador',{value:'Fernando Leal'}],
- ['telefoneGerador',{value:'(11) 94766-2843'}],
+ ['nomeGerador',{value:''}],
+ ['telefoneGerador',{value:''}],
  ['produto',{value:'auto',tagName:'SELECT',options:[{value:'auto'},{value:'imovel'}]}],
  ['credito',{value:'125.000,00',type:'text'}],
  ['prazoConsorcio',{value:'80',type:'number'}],
@@ -103,12 +103,16 @@ const ambienteCompartilhamento=vm.createContext({
  atualizarEmprestimoEmpresarial:()=>{},
  calcularIndice:()=>{},
  atualizarIndice:()=>{},
- validarConsultor:(nome,numero)=>({nome,numero:'5511947662843'})
+ consultorAtual:{nome:'Fernando Leal',numero:'5511947662843'},
+ consultorPadrao:{nome:'Fernando Leal',numero:'5511947662843'},
+ validarConsultor:(nome,numero)=>nome&&numero?{nome,numero}:null
 });
 vm.runInContext(html.slice(inicioLink,fimLink),ambienteCompartilhamento);
 const enderecoGerado=new URL(ambienteCompartilhamento.criarUrlSimulacaoAtual());
 assert.equal(enderecoGerado.pathname,'/simuladorlotus/');
 assert.equal(enderecoGerado.searchParams.get('consultor'),'Fernando Leal');
+assert.equal(enderecoGerado.searchParams.get('whatsapp'),'5511947662843');
+assert.equal(camposLink.get('nomeGerador').value,'','Campo de outro consultor deve permanecer vazio');
 assert.equal(enderecoGerado.searchParams.get('sim'),'1');
 assert.equal(enderecoGerado.searchParams.get('produto'),'auto');
 assert.equal(enderecoGerado.searchParams.get('s_credito'),'125.000,00');
