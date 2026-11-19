@@ -94,11 +94,14 @@ const camposRurais=new Map([
  ['jurosBanco',{value:''}],
  ['notaEmprestimo',{textContent:''}],
  ['seletorCreditoRural',{style:{display:'none'}}],
+ ['blocoTomadorFin',{style:{display:'none'}}],
+ ['perfilTomadorFin',{value:'pf'}],
  ['ajustarTaxaCenario',{checked:true}],
  ['prazoFin',{value:'96'}]
 ]);
 const ctxRural=vm.createContext({
  document:{getElementById:id=>camposRurais.get(id)||null},
+ sincronizarIOFConformeFinalidade:()=>{},
  calcular:()=>{recalculosRurais++;}
 });
 vm.runInContext(html.slice(inicioRural,fimRural),ctxRural);
@@ -166,6 +169,8 @@ const camposEncargos=new Map([
  ['bancoAuto',{value:'pan'}],
  ['bancoEspecial',{value:'manual'}],
  ['tipoImovelFin',{value:'sfh'}],
+ ['perfilTomadorFin',{value:'pf'}],
+ ['modalidadeEmprestimo',{value:'home'}],
  ['encargosAutomaticosFin',{checked:false}],
  ['notaBaseEncargosFin',{textContent:''}],
  ['blocoTipoImovelFin',{style:{display:'none'}}],
@@ -249,8 +254,27 @@ camposEncargos.get('bancoFin').value='santander';
 camposEncargos.get('encargosAutomaticosFin').checked=true;
 camposEncargos.get('tipoImovelFin').value='comercial';
 ctxEncargos.alterarTipoImovelFin();
-assert.equal(camposEncargos.get('iofModoFin').value,'manual');
+assert.equal(camposEncargos.get('iofModoFin').value,'auto_pf');
+assert.ok(ctxEncargos.calcularEncargosFinanciamento('imovel',240000,12,360,'sac').iof>0,'Comercial PF deve estimar IOF');
+assert.equal(camposEncargos.get('seguroMIPFin').value,'0','Comercial não atribui MIP habitacional');
+assert.equal(camposEncargos.get('seguroDFIFin').value,'0','Comercial não atribui DFI habitacional');
 assert.equal(camposEncargos.get('tarifaAvaliacaoFin').value,'3300.00');
+camposEncargos.get('tipoImovelFin').value='sfi';
+ctxEncargos.alterarTipoImovelFin();
+assert.equal(camposEncargos.get('iofModoFin').value,'isento','Habitação SFI elegível');
+camposEncargos.get('tipoImovelFin').value='sfh';
+ctxEncargos.alterarTipoImovelFin();
+assert.equal(camposEncargos.get('iofModoFin').value,'isento','Habitação SFH elegível');
+camposEncargos.get('produto').value='capital_giro';
+camposEncargos.get('modalidadeEmprestimo').value='home';
+camposEncargos.get('perfilTomadorFin').value='pf';
+ctxEncargos.sincronizarIOFConformeFinalidade();
+assert.equal(camposEncargos.get('iofModoFin').value,'auto_pf','Home Equity PF: IOF tributável');
+assert.ok(ctxEncargos.calcularEncargosFinanciamento('capital_giro',100000,18.16,60,'price').iof>0);
+camposEncargos.get('perfilTomadorFin').value='pj';
+ctxEncargos.alterarPerfilTomadorFin();
+assert.equal(camposEncargos.get('iofModoFin').value,'manual','Home Equity PJ: IOF da proposta');
+camposEncargos.get('produto').value='auto';
 camposEncargos.get('produto').value='auto';
 ctxEncargos.prepararEncargosFinanciamento();
 assert.equal(camposEncargos.get('iofModoFin').value,'auto_pf');
