@@ -56,7 +56,7 @@ const sac=sim(240000,12,360,'sac',0);
 const price=sim(240000,12,360,'price',0);
 assert.ok(sac.total<price.total,'SAC deve ter juros totais menores nas mesmas condições');
 assert.deepEqual(Object.keys(sim(0,12,360,'sac')).sort(),['juros','primeira','total','ultima']);
-for(const id of ['produto','credito','prazoConsorcio','prazoFin','entradaPct','sistemaFin','bancoFin','bancoAuto','indiceOficial','resultadoIndice','valCustoBanco','telefoneBotao','linkGerado']){
+for(const id of ['produto','credito','prazoConsorcio','prazoFin','entradaPct','sistemaFin','bancoFin','bancoAuto','indiceOficial','resultadoIndice','valCustoBanco','linkGerado']){
  assert.ok(html.includes('id="'+id+'"'),'Campo ausente: '+id);
 }
 assert.match(html,/Valor de Entrada:<\/span>\s*<strong id="valEntradaFin"/);
@@ -96,8 +96,9 @@ const camposLink=new Map([
 ]);
 let calculosCompartilhamento=0;
 const localTeste={origin:'https://fernandoleal33.github.io',pathname:'/simuladorlotus/',search:''};
+let urlWhatsAppCompartilhamento='';
 const ambienteCompartilhamento=vm.createContext({
- window:{location:localTeste,open:()=>{}},
+ window:{location:localTeste,open:(url)=>{urlWhatsAppCompartilhamento=url;}},
  document:{getElementById:id=>camposLink.get(id)||null},
  URL, URLSearchParams,
  navigator:{clipboard:{writeText:async()=>{}}},
@@ -110,7 +111,8 @@ const ambienteCompartilhamento=vm.createContext({
  validarConsultor:(nome,telefone)=>{
   const digitos=String(telefone||'').replace(/\D/g,'');
   if(!nome||digitos.length<10)return null;
-  return {nome,numero:digitos.length===11?'55'+digitos:digitos};
+  const local=digitos.length===11?digitos:digitos.slice(2);
+  return {nome,numero:digitos.length===11?'55'+digitos:digitos,formatado:'('+local.slice(0,2)+') '+local.slice(2,-4)+'-'+local.slice(-4)};
  }
 });
 vm.runInContext(html.slice(inicioLink,fimLink),ambienteCompartilhamento);
@@ -128,6 +130,11 @@ assert.equal(enderecoGerado.searchParams.get('s_ajustarTaxaCenario'),'1');
 assert.equal(enderecoGerado.hash,'#simulador');
 assert.ok(!enderecoGerado.toString().includes('CPF'),'Não compartilhar documentos pessoais');
 assert.equal(calculosCompartilhamento,1);
+ambienteCompartilhamento.enviarLinkCompartilhamentoWhatsApp();
+assert.match(urlWhatsAppCompartilhamento,/^https:\/\/api\.whatsapp\.com\/send\?text=/);
+const mensagemWhatsAppCompartilhamento=new URL(urlWhatsAppCompartilhamento).searchParams.get('text');
+assert.ok(mensagemWhatsAppCompartilhamento.includes('Consultor: Fernando Leal | WhatsApp: (11) 94766-2843'),'Contato do consultor precisa estar na mensagem');
+assert.ok(mensagemWhatsAppCompartilhamento.includes('whatsapp=5511947662843'),'Contato do consultor precisa estar no link');
 camposLink.get('produto').value='imovel';
 camposLink.get('credito').value='300.000,00';
 camposLink.get('planoUnifisa').value='';
@@ -154,9 +161,9 @@ camposLink.get('nomeGerador').value='';
 assert.equal(ambienteCompartilhamento.gerarLinkCompartilhamento(),'','Nome vazio não gera link');
 console.log('Compartilhamento unificado: administrador, outros consultores, cenário e link livre conferidos.');
 
-assert.match(html,/function enviarWhatsApp\(\)/);
-assert.match(html,/https:\/\/wa\.me\/'\+consultorAtual\.numero/);
-assert.match(html,/encodeURIComponent\(textoProposta\(\)\)/);
+assert.doesNotMatch(html,/Testar Envio via WhatsApp|id="telefoneBotao"|function enviarWhatsApp\(\)|function copiarProposta\(\)/);
+assert.match(html,/const consultorPadrao = \{nome:'Fernando Leal',numero:'5511947662843'\}/);
+assert.match(html,/Consultor: '\+dados\.nome\+' \| WhatsApp: '\+dados\.formatado/);
 assert.match(html,/contemplação não é garantida/i);
 assert.match(html,/Esta simulação não inclui taxas adicionais, seguros e tarifas\./);
 assert.match(html,/Custo total estimado:<\/span>\s*<strong id="valCustoConsorcio"/);
