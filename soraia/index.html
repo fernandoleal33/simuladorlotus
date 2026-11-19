@@ -296,10 +296,11 @@
                             <div id="blocoTipoImovelFin" class="mt-3">
                                 <label for="tipoImovelFin" class="block text-xs font-medium text-slate-300 mb-1">Finalidade do financiamento imobiliário</label>
                                 <select id="tipoImovelFin" onchange="alterarTipoImovelFin()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white">
-                                    <option value="sfh">Habitação — SFH (quando elegível)</option>
-                                    <option value="sfi">Habitação — SFI</option>
-                                    <option value="comercial">Aquisição de imóvel comercial (PF)</option>
+                                    <option value="sfh">Para morar — crédito com regras habitacionais (SFH)*</option>
+                                    <option value="sfi">Para morar — condições de mercado (SFI)*</option>
+                                    <option value="comercial">Imóvel comercial — condições sob consulta</option>
                                 </select>
+                                <p id="notaModalidadeImovel" class="text-[10px] text-slate-400 mt-1">*SFH e SFI são formas de financiamento. A possibilidade de contratação depende da avaliação do banco.</p>
                             </div>
                         </div>
                         <div id="blocoCreditoEmpresarial" style="display:none;" class="bg-slate-900/60 border border-slate-700 rounded-lg p-3 space-y-2">
@@ -552,6 +553,30 @@
             sicoob: 10.93,
             sicredi: 12.23
         };
+        // BCB 905201 — financiamento imobiliário PF com TAXAS REGULADAS, pós-fixado na TR.
+        // Outubro/2026, valores anuais do Banco Central, parte fixa acrescida da TR futura.
+        // Não corresponde a toda operação SFH, nem significa enquadramento automático.
+        // https://www.bcb.gov.br/estatisticas/reporttxjuros?codigoModalidade=905201&codigoSegmento=1
+        const taxasBancosImobiliarioReguladas = {
+            caixa: 7.87,
+            bradesco: 11.78,
+            santander: 11.86,
+            itau: 11.86,
+            bb: 10.56,
+            inter: 9.09,
+            sicoob: 9.89,
+            sicredi: 10.64
+        };
+        // Referência GENÉRICA para imóvel comercial, não taxa bancária específica:
+        // mediana das instituições na modalidade geral de taxas de mercado / TR, BCB 903201,
+        // outubro/2026: ~0,96% a.m. ou 12,15% a.a. em conversão aproximada.
+        // https://creditoscopio.com.br/credito/financiamento-imobiliario-mercado-tr/
+        const TAXA_REFERENCIA_COMERCIAL_PF = 12.15;
+        function taxaImobiliariaPorModalidade(banco, modalidade){
+            if(modalidade==='comercial') return TAXA_REFERENCIA_COMERCIAL_PF;
+            const mapa=modalidade==='sfh'?taxasBancosImobiliarioReguladas:taxasBancosImobiliario;
+            return Object.prototype.hasOwnProperty.call(mapa,banco)?mapa[banco]:null;
+        }
         let taxaBaseSelecionada = null;
         // Modelo de sensibilidade hipotético: não representa precificação de qualquer instituição.
         // Referência neutra: imóvel 20% de entrada e 360 meses; automóvel 30% e 60 meses.
@@ -564,16 +589,21 @@
         function atualizarTaxaCenario() {
             const produto = document.getElementById('produto').value;
             const banco = produto === 'imovel' ? document.getElementById('bancoFin').value : (produto === 'auto' || produto === 'luxo') ? document.getElementById('bancoAuto').value : 'manual';
-            const ativo = document.getElementById('ajustarTaxaCenario').checked && banco !== 'manual' && banco !== 'safra' && (produto === 'imovel' || produto === 'auto');
+            const tipoImovel=produto==='imovel'?document.getElementById('tipoImovelFin').value:null;
+            const ativo = document.getElementById('ajustarTaxaCenario').checked && banco !== 'manual' && banco !== 'safra' &&
+                (produto === 'auto' || (produto==='imovel'&&tipoImovel!=='comercial'));
             const campo = document.getElementById('jurosBanco');
             const nota = document.getElementById('explicacaoTaxaCenario');
             if (!ativo) {
-                nota.textContent = produto==='luxo' ? 'Veículo de luxo: sem ajuste automático validado. Média PF geral ou taxa manual; confirme a proposta e CET.' : 'Taxa informada manualmente ou produto sem modelo automático. Confirme taxa efetiva e CET.';
+                nota.textContent = tipoImovel==='comercial'
+                    ?'Imóvel comercial: referência geral ilustrativa, não cotação específica do banco. Informe a taxa da proposta para ter uma comparação confiável.'
+                    : produto==='luxo' ? 'Veículo de luxo: sem ajuste automático validado. Média PF geral ou taxa manual; confirme a proposta e CET.'
+                    : 'Taxa de referência sem ajuste automático por entrada/prazo. Confirme a taxa efetiva e o CET na proposta.';
                 return;
             }
             const entrada = Math.max(0, Math.min(100, num('entradaPct',0)));
             const meses = Math.max(1, num('prazoFin',1));
-            const base = produto === 'imovel' ? taxasBancosImobiliario[banco] : taxasBancosAuto[banco];
+            const base = produto === 'imovel' ? taxaImobiliariaPorModalidade(banco,tipoImovel) : taxasBancosAuto[banco];
             const ajuste = ajustarTaxaPorCenario(produto,entrada,meses);
             const taxa = Math.max(0,base+ajuste);
             taxaBaseSelecionada = base;
@@ -581,18 +611,38 @@
             nota.textContent = 'Estimativa ilustrativa: referência '+base.toFixed(2)+'% a.a. '+(ajuste>=0?'+ ':'− ')+Math.abs(ajuste).toFixed(2)+' p.p. por entrada/prazo = '+taxa.toFixed(2)+'% a.a. Não é oferta, política oficial ou CET.';
         }
         function selecionarBanco() {
-            const banco = document.getElementById('bancoFin').value;
-            const campo = document.getElementById('jurosBanco');
-            const nota = document.getElementById('notaBanco');
-            if (banco === 'manual') {
-                document.getElementById('ajustarTaxaCenario').checked = false;
-                campo.readOnly = false;
-                nota.textContent = 'Taxa personalizada inserida manualmente. Confirme a taxa e o CET na proposta bancária.';
-            } else {
-                campo.value = taxasBancosImobiliario[banco].toFixed(2);
-                taxaBaseSelecionada = taxasBancosImobiliario[banco];
-                campo.readOnly = false; // permite ajuste fino conforme perfil e proposta
-                nota.textContent = 'BCB, outubro/2026: financiamento imobiliário PF de mercado, modalidade 903201. Média anual por banco, parte fixa + TR; não inclui a TR futura, seguros, tarifas ou CET.';
+            const banco=document.getElementById('bancoFin').value;
+            const modalidade=document.getElementById('tipoImovelFin').value;
+            const campo=document.getElementById('jurosBanco');
+            const nota=document.getElementById('notaBanco');
+            const explicacao=document.getElementById('notaModalidadeImovel');
+            const taxa=taxaImobiliariaPorModalidade(banco,modalidade);
+            campo.readOnly=false;
+            if(modalidade==='comercial'){
+                // Não inventar uma taxa comercial vinculada ao banco selecionado.
+                // A mediana geral da série de MERCADO é apenas ponto de partida editável.
+                document.getElementById('ajustarTaxaCenario').checked=false;
+                if(banco!=='manual')campo.value=TAXA_REFERENCIA_COMERCIAL_PF.toFixed(2);
+                taxaBaseSelecionada=null;
+                nota.textContent='Imóvel comercial PF: referência GERAL do mercado imobiliário (12,15% a.a. + TR), BCB 903201, outubro/2026; NÃO é taxa de financiamento comercial do '+(document.getElementById('bancoFin').selectedOptions?.[0]?.text||'banco')+'. Edite com a proposta.';
+                explicacao.textContent='Para loja, sala ou imóvel comercial. Cada banco analisa finalidade, garantias e juros separadamente. A taxa exibida é só uma referência geral para comparação.';
+            }else if(banco==='manual'){
+                document.getElementById('ajustarTaxaCenario').checked=false;
+                taxaBaseSelecionada=null;
+                nota.textContent='Taxa informada por você. Confirme a taxa efetiva anual, a TR, encargos e o CET na proposta.';
+                explicacao.textContent=modalidade==='sfh'
+                    ?'Moradia com possibilidade de crédito habitacional regulado, caso cumpra as regras do banco. Não é aprovação automática.'
+                    :'Moradia com financiamento pelas condições de mercado; geralmente usado no SFI. A elegibilidade depende do banco.';
+            }else{
+                campo.value=taxa.toFixed(2);
+                taxaBaseSelecionada=taxa;
+                if(modalidade==='sfh'){
+                    nota.textContent='BCB, outubro/2026: taxa média regulada por banco (905201), parte fixa + TR futura. Inclui perfis e programas diferentes; não é oferta nem CET.';
+                    explicacao.textContent='Para comprar ou construir uma moradia dentro das regras de crédito habitacional. A taxa mostrada é média de contratos com juros regulados, não garantia de aprovação.';
+                }else{
+                    nota.textContent='BCB, outubro/2026: taxa média de mercado por banco (903201), parte fixa + TR futura. Pode incluir operações de vários perfis; não é oferta nem CET.';
+                    explicacao.textContent='Para comprar uma moradia em condições negociadas com o banco, comuns no SFI. As regras e os juros dependem do perfil e do contrato.';
+                }
             }
             atualizarTaxaCenario();
             aplicarEncargosAutomaticosFinanciamento();
@@ -785,6 +835,10 @@
             document.getElementById('jurosBanco').value=p.juros;
             document.getElementById('entradaPct').value=prod==='capital_giro'?0:p.entrada;
             document.getElementById('blocoEntradaBanco').style.display=prod==='capital_giro'?'none':'block';
+            if(prod==='imovel'){
+                document.getElementById('tipoImovelFin').value='sfh';
+                document.getElementById('ajustarTaxaCenario').checked=false;
+            }
             atualizarBancoPorProduto(prod);
             prepararEncargosFinanciamento();
             atualizarTaxaCenario();
@@ -916,9 +970,8 @@
         }
         function alterarTipoImovelFin(){
             sincronizarIOFConformeFinalidade();
-            aplicarEncargosAutomaticosFinanciamento();
-            atualizarVisibilidadeEncargosFinanciamento();
-            calcular();
+            document.getElementById('ajustarTaxaCenario').checked=false;
+            selecionarBanco();
         }
         function prepararEncargosFinanciamento(){
             const produto=document.getElementById('produto').value;
