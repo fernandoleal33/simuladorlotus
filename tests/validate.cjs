@@ -94,12 +94,22 @@ function obterTabelaTaxas(nome){
  return Function('"use strict";return ('+match[1]+')')();
 }
 const taxasImovel=obterTabelaTaxas('taxasBancosImobiliario');
+const taxasImovelReguladas=obterTabelaTaxas('taxasBancosImobiliarioReguladas');
 const taxasAuto=obterTabelaTaxas('taxasBancosAuto');
 const taxasRurais=obterTabelaTaxas('linhasCreditoRural');
 for(const [banco,taxa] of Object.entries({
  caixa:11.97,bradesco:12.27,santander:12.32,itau:12.22,
  bb:14.42,inter:12.97,sicoob:10.93,sicredi:12.23
-})) assert.equal(taxasImovel[banco],taxa,'Imobiliário '+banco);
+})) assert.equal(taxasImovel[banco],taxa,'Imobiliário mercado '+banco);
+for(const [banco,taxa] of Object.entries({
+ caixa:7.87,bradesco:11.78,santander:11.86,itau:11.86,
+ bb:10.56,inter:9.09,sicoob:9.89,sicredi:10.64
+})) assert.equal(taxasImovelReguladas[banco],taxa,'Imobiliário regulado '+banco);
+assert.notEqual(taxasImovel.caixa,taxasImovelReguladas.caixa,'Mercado e reguladas não devem usar a mesma tabela');
+assert.match(html,/const TAXA_REFERENCIA_COMERCIAL_PF = 12\.15/);
+assert.match(html,/id="notaModalidadeImovel"/);
+assert.match(html,/Para morar — crédito com regras habitacionais/);
+assert.match(html,/Para morar — condições de mercado/);
 for(const [banco,taxa] of Object.entries({
  santander:24.36,itau:27.74,pan:41.85,bv:30.82,bradesco:22.17,safra:22.22
 })) assert.equal(taxasAuto[banco],taxa,'Veículo '+banco);
@@ -112,7 +122,50 @@ assert.match(html,/28\/10 a 04\/11\/2026/);
 assert.match(html,/value="moderfrotaPronamp"/);
 assert.match(html,/HIPÓTESE ILUSTRATIVA — NÃO é taxa verificada do banco/);
 assert.match(html,/produto==='luxo'\)document.getElementById\('ajustarTaxaCenario'\).checked=false/);
-assert.match(html,/restaurar\('linhaCreditoRural'\);\s*if\(valorProduto==='capital_giro'\)atualizarEmprestimoEmpresarial\(\)/);
+assert.match(html,/restaurar\('linhaCreditoRural'\);\s*restaurar\('perfilTomadorFin'\);\s*if\(valorProduto==='capital_giro'\)atualizarEmprestimoEmpresarial\(\)/);
+// Testa a escolha real das taxas reguladas, de mercado e o cenário de imóvel comercial.
+const iniImovel=html.indexOf('const taxasBancosImobiliario =');
+const fimImovel=html.indexOf('// BCB, modalidade 401101',iniImovel);
+assert.ok(iniImovel>0&&fimImovel>iniImovel);
+const camposImovel=new Map([
+ ['produto',{value:'imovel'}],
+ ['bancoFin',{value:'caixa',selectedOptions:[{text:'Caixa'}]}],
+ ['tipoImovelFin',{value:'sfh'}],
+ ['jurosBanco',{value:''}],
+ ['notaBanco',{textContent:''}],
+ ['notaModalidadeImovel',{textContent:''}],
+ ['ajustarTaxaCenario',{checked:false}],
+ ['explicacaoTaxaCenario',{textContent:''}],
+ ['entradaPct',{value:'20'}],
+ ['prazoFin',{value:'360'}]
+]);
+const ctxImovel=vm.createContext({
+ document:{getElementById:id=>camposImovel.get(id)||null},
+ num:(id,fallback=0)=>Number(camposImovel.get(id)?.value??fallback),
+ calcular:()=>{},
+ aplicarEncargosAutomaticosFinanciamento:()=>{}
+});
+vm.runInContext(html.slice(iniImovel,fimImovel),ctxImovel);
+for(const [modalidade,tabela] of [['sfh',taxasImovelReguladas],['sfi',taxasImovel]]){
+ camposImovel.get('tipoImovelFin').value=modalidade;
+ for(const [banco,taxa] of Object.entries(tabela)){
+  camposImovel.get('bancoFin').value=banco;
+  camposImovel.get('bancoFin').selectedOptions[0].text=banco;
+  ctxImovel.selecionarBanco();
+  assert.equal(Number(camposImovel.get('jurosBanco').value),taxa,modalidade+'/'+banco);
+ }
+}
+camposImovel.get('tipoImovelFin').value='comercial';
+camposImovel.get('bancoFin').value='santander';
+camposImovel.get('bancoFin').selectedOptions[0].text='Santander';
+camposImovel.get('ajustarTaxaCenario').checked=true;
+ctxImovel.selecionarBanco();
+assert.equal(Number(camposImovel.get('jurosBanco').value),12.15);
+assert.equal(camposImovel.get('ajustarTaxaCenario').checked,false);
+assert.match(camposImovel.get('notaBanco').textContent,/NÃO é taxa de financiamento comercial/);
+assert.match(camposImovel.get('notaModalidadeImovel').textContent,/só uma referência geral/);
+console.log('Referências distintas de moradia e comercial, 8 bancos e textos simples verificados.');
+
 // Teste real da seleção das linhas, incluindo a visibilidade do seletor.
 const inicioRural=html.indexOf('const linhasCreditoRural =');
 const fimRural=html.indexOf('function alternarVitrine(indice)',inicioRural);
@@ -206,6 +259,7 @@ const camposEncargos=new Map([
  ['notaBaseEncargosFin',{textContent:''}],
  ['blocoTipoImovelFin',{style:{display:'none'}}],
  ['iofModoFin',{value:'auto_pf'}],
+ ['ajustarTaxaCenario',{checked:false}],
  ['iofManualFin',{value:'450'}],
  ['seguroMIPFin',{value:'85'}],
  ['seguroDFIFin',{value:'35'}],
@@ -226,6 +280,7 @@ const ctxEncargos=vm.createContext({
  document:{getElementById:id=>camposEncargos.get(id)||null},
  num:(id,def=0)=>{const n=Number(camposEncargos.get(id)?.value);return Number.isFinite(n)?n:def;},
  parseMoeda:v=>Number(String(v||'').replace(/\./g,'').replace(',','.')),
+ selecionarBanco:()=>{ctxEncargos.aplicarEncargosAutomaticosFinanciamento();},
  calcular:()=>{}
 });
 vm.runInContext(html.slice(inicioEncargos,fimEncargos),ctxEncargos);
