@@ -264,6 +264,11 @@ for(const id of ['valIOFFin','valTarifasFin','valSaldoFin','valInicialFin','valS
 assert.match(html,/custoFin=valorEntrada\+custosFin\.pagoAVista\+totalParcelasFin/);
 assert.match(html,/desenharGraficoComparativo\([^\n]+custosFin\.pagoAVista,custosFin\.encargosMensais\)/);
 console.log('IOF, seguros, tarifas, saldo financiado e desembolso total conferidos.');
+assert.match(html,/id="blocoEncargosFinanciamento" hidden aria-hidden="true" style="display:none"/);
+assert.ok(!html.includes('Detalhar seguros e tarifas (estimativas editáveis)'));
+assert.ok(!html.includes('IOF, seguros e tarifas do financiamento</h3>'));
+console.log('Interface financeira compacta verificada.');
+
 
 // Compartilhamento unificado: um painel para administrador e demais consultores.
 assert.match(html,/id="compartilharSimulador"/);
