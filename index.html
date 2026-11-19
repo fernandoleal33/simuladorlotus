@@ -334,11 +334,25 @@
                         </div>
                         <div class="md:col-span-2 bg-slate-900/60 border border-slate-700 rounded-xl p-4 space-y-3" id="blocoEncargosFinanciamento">
                             <h3 class="text-sm font-semibold text-white">IOF, seguros e tarifas do financiamento</h3>
-                            <p class="text-xs text-slate-300">Valores editáveis conforme a proposta do banco. Campos em R$ 0,00 significam apenas que não foi informado um custo; não indicam isenção. Os custos mensais são estimados como constantes, sem reajustes futuros.</p>
+                            <label class="flex items-start gap-2 text-sm text-emerald-200">
+                                <input id="encargosAutomaticosFin" type="checkbox" checked class="mt-1" onchange="alterarEncargosAutomaticosFin()">
+                                Calcular estimativas automaticamente conforme banco e modalidade
+                            </label>
+                            <div id="blocoTipoImovelFin">
+                                <label class="block text-xs text-slate-200">Modalidade do imóvel
+                                    <select id="tipoImovelFin" onchange="alterarTipoImovelFin()" class="mt-1 w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white">
+                                        <option value="sfh">Habitacional SFH (quando elegível)</option>
+                                        <option value="sfi">Habitacional SFI</option>
+                                        <option value="comercial">Imóvel comercial / não habitacional</option>
+                                    </select>
+                                </label>
+                            </div>
+                            <p id="notaBaseEncargosFin" class="text-xs text-amber-200 leading-relaxed" role="status" aria-live="polite">Selecione o banco para ver as referências e premissas usadas.</p>
+                            <p class="text-xs text-slate-300">Quando disponíveis, são utilizados valores divulgados pelo banco. Os demais valores são apenas premissas de planejamento, nunca tarifas ou prêmios oficiais. Campos em R$ 0,00 não significam isenção; custos ainda desconhecidos não entram na soma. A simulação não constitui CET.</p>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <label class="text-xs text-slate-200">IOF sobre a operação
                                     <select id="iofModoFin" onchange="alterarModoIOFFin()" class="mt-1 w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white">
-                                        <option value="isento">Isento/não aplicável</option>
+                                        <option value="isento">Sem IOF sobre crédito habitacional elegível</option>
                                         <option value="auto_pf">Estimar IOF — crédito PF tributável</option>
                                         <option value="manual">Informar IOF da proposta (R$)</option>
                                     </select>
@@ -349,7 +363,7 @@
                             </div>
                             <p id="notaIOFFin" class="text-xs text-amber-200" role="status"></p>
                             <details class="border border-slate-700 rounded-lg p-3">
-                                <summary class="cursor-pointer text-sm font-semibold text-emerald-200">Detalhar seguros e tarifas (opcional)</summary>
+                                <summary class="cursor-pointer text-sm font-semibold text-emerald-200">Detalhar seguros e tarifas (estimativas editáveis)</summary>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
                                     <div id="blocoSegurosHabitacionaisFin" class="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         <label class="text-xs text-slate-200">Seguro MIP (mensal, R$)
@@ -609,6 +623,7 @@
                 nota.textContent = 'BCB, outubro/2026: financiamento imobiliário PF de mercado, modalidade 903201. Média anual por banco, parte fixa + TR; não inclui a TR futura, seguros, tarifas ou CET.';
             }
             atualizarTaxaCenario();
+            aplicarEncargosAutomaticosFinanciamento();
             calcular();
         }
         // BCB, modalidade 401101, aquisição de veículos PF, prefixado.
@@ -640,6 +655,7 @@
                   :'Média BCB de aquisição de veículos PF (28/10 a 04/11/2026, modalidade 401101). Taxa editável, não é cotação ou CET.';
             }
             atualizarTaxaCenario();
+            aplicarEncargosAutomaticosFinanciamento();
             calcular();
         }
         // Instituições de referência por segmento. Não atribuir taxas bancárias
@@ -667,6 +683,7 @@
                 (sel.value==='manual'?'Referência editável. ':nome+': sem cotação específica confirmada. ')+
                 ref.origem+' Informe a taxa da proposta efetiva anual; confira CET, entrada, garantias e indexadores.';
             atualizarTaxaCenario();
+            aplicarEncargosAutomaticosFinanciamento();
             calcular();
         }
         function atualizarBancoPorProduto(prod) {
