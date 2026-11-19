@@ -397,12 +397,16 @@
 <h2 class="text-lg font-semibold text-emerald-300">Planejamento Patrimonial Imobiliário</h2>
 <p class="text-xs text-slate-300">Simule a aquisição de um imóvel, sua valorização hipotética e a renda de aluguel. Contemplação, valorização e renda não são garantidas. O reajuste da carta não representa rendimento.</p>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+<label class="block text-sm">Tabela imobiliária Unifisa<select id="planoPatrimonial" class="w-full bg-slate-900 p-2 rounded"></select></label>
+<div id="resumoTabelaPatrimonial" class="text-xs text-emerald-200 self-center">Selecione a tabela imobiliária.</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
 <label class="block text-sm">Cenário de valorização<select id="cenarioPatrimonial" class="w-full bg-slate-900 p-2 rounded"><option value="2">Conservador (2% a.a.)</option><option value="4" selected>Intermediário (4% a.a.)</option><option value="6">Otimista (6% a.a.)</option><option value="manual">Personalizado</option></select></label>
 <label class="block text-sm">Valorização hipotética do imóvel (% a.a.)<input id="valorizacaoIndice" type="number" value="4" step="0.1" class="w-full bg-slate-900 p-2 rounded"></label>
 <label class="block text-sm">Prazo da projeção (meses, até 240)<input id="anosIndice" type="number" value="180" min="1" max="240" step="1" class="w-full bg-slate-900 p-2 rounded"></label>
 <label class="flex items-center gap-2 text-sm"><input id="vincularPrazoPatrimonial" type="checkbox" checked> Acompanhar prazo do consórcio</label>
 <label class="block text-sm">Mês hipotético de contemplação/aquisição<input id="mesRetiradaIndice" type="number" value="120" min="1" max="240" step="1" class="w-full bg-slate-900 p-2 rounded"></label>
-<label class="block text-sm">Parcela mensal estimada do consórcio (R$)<input id="parcelaPatrimonial" type="number" value="0" min="0" step="0.01" class="w-full bg-slate-900 p-2 rounded"></label>
+
 <label class="block text-sm">Aluguel mensal bruto após aquisição (R$)<input id="aluguelPatrimonial" type="number" value="0" min="0" step="0.01" class="w-full bg-slate-900 p-2 rounded"></label>
 <label class="block text-sm">Vacância estimada (% do período)<input id="vacanciaPatrimonial" type="number" value="10" min="0" max="100" step="1" class="w-full bg-slate-900 p-2 rounded"></label>
 <label class="block text-sm">Despesas mensais do imóvel (R$)<input id="despesasPatrimoniais" type="number" value="0" min="0" step="0.01" class="w-full bg-slate-900 p-2 rounded"></label>
@@ -1235,17 +1239,15 @@
             if(planoSelecionado?.power)document.getElementById('linhaResumoPlano').textContent+=' | Plano Power: confirme vigência e disponibilidade do grupo antes de apresentar proposta.';
 
             if(!prazoPlanoValido)document.getElementById('linhaResumoPlano').textContent='ATENÇÃO: crédito ou prazo fora das condições cadastradas do Plano Power/tabela comercial. Resultados não válidos para proposta.';
-            document.getElementById('linhaValorAntecipacao').style.display=mesesTaxaAntecipada>0?'flex':'none';
-            document.getElementById('valValorAntecipacao').textContent=fmt(totalTaxaAntecipada);
-            document.getElementById('labelValorAntecipacao').textContent=mesesTaxaAntecipada>1
-              ? 'Antecipação total (diluída em '+mesesTaxaAntecipada+' parcelas):'
-              : 'Valor da antecipação na 1ª parcela:';
-            document.getElementById('linhaParcelaComAntecipacao').style.display=mesesTaxaAntecipada>1?'flex':'none';
-            document.getElementById('labelParcelaComAntecipacao').textContent='Parcela total nos primeiros '+mesesTaxaAntecipada+' meses (inclui antecipação):';
+            document.getElementById('linhaValorAntecipacao').style.display='none';
+            document.getElementById('linhaParcelaComAntecipacao').style.display=mesesTaxaAntecipada>0?'flex':'none';
+            document.getElementById('labelParcelaComAntecipacao').textContent=mesesTaxaAntecipada>1
+              ? '1ª à '+mesesTaxaAntecipada+'ª parcela:'
+              : '1ª parcela:';
             document.getElementById('valParcelaComAntecipacao').textContent=fmt(parcelaPre);
             document.getElementById('labelParcPre').textContent=mesesTaxaAntecipada>1
-              ? 'Parcela mensal sem antecipação (a partir do '+(mesesTaxaAntecipada+1)+'º mês):'
-              : (ativarRed?'Parcela mensal reduzida:':'Parcela mensal:');
+              ? (mesesTaxaAntecipada+1)+'ª parcela em diante:'
+              : (mesesTaxaAntecipada===1?'Demais parcelas:':(ativarRed?'Parcela mensal reduzida:':'Parcela mensal:'));
             document.getElementById('valParcRed').textContent=fmt(parcelaReduzida);
             document.getElementById('valParcPos').textContent=fmt(parcelaPos);
             document.getElementById('linhaPrazoPosLance').style.display=modoAbate==='prazo'?'flex':'none';
@@ -1329,6 +1331,28 @@
           if(vinculado)horizonte.value=Math.max(1,Math.min(240,Math.floor(num('prazoConsorcio',240))));
           calcularIndice();
         }
+        // Cálculo compartilhado: mesma composição financeira da matriz imobiliária.
+        function calcularParcelasTabela(credito,prazo,admPct,reservaPct,seguroMensalPct,plano){
+          const totalAdm=credito*admPct/100;
+          const totalReserva=credito*reservaPct/100;
+          const totalSeguro=(credito+totalAdm+totalReserva)*(seguroMensalPct/100)*prazo;
+          const totalPlano=credito+totalAdm+totalReserva+totalSeguro;
+          const mesesAntecipacao=plano?.mesesAntecipacao||0;
+          const antecipacao=mesesAntecipacao?credito*plano.antecipacao/100:0;
+          const mensal=(totalPlano-antecipacao)/prazo;
+          const reducao=plano?.reducao?((credito+totalAdm+totalReserva)/prazo*(1-plano.reducao)+totalSeguro/prazo-antecipacao/prazo):mensal;
+          return {mensal:reducao,primeira:reducao+(mesesAntecipacao?antecipacao/mesesAntecipacao:0),mesesAntecipacao,totalPlano,antecipacao};
+        }
+        function preencherPlanosPatrimoniais(){
+          const sel=document.getElementById('planoPatrimonial');if(!sel)return;
+          const anterior=sel.value;
+          sel.replaceChildren();
+          for(const [chave,plano] of Object.entries(tabelaPlanos.imovel)){
+            const opt=document.createElement('option');opt.value=chave;opt.textContent=plano.nome;sel.appendChild(opt);
+          }
+          if(tabelaPlanos.imovel[anterior])sel.value=anterior;
+          else if(tabelaPlanos.imovel.gamma)sel.value='gamma';
+        }
         function calcularIndice(){
           const out=document.getElementById('resultadoIndice');
           const raw=document.getElementById('taxaOficial').value;
@@ -1342,10 +1366,21 @@
           campoRetirada.max=String(meses);
           const retirada=Math.max(1,Math.min(meses,Math.floor(num('mesRetiradaIndice',Math.min(120,meses)))));
           const valorizacao=num('valorizacaoIndice',4);
-          const parcela=Math.max(0,num('parcelaPatrimonial',0));
+          const chavePlano=document.getElementById('planoPatrimonial').value;
+          const plano=tabelaPlanos.imovel[chavePlano];
+          const prazoCons=Math.max(1,Math.floor(num('prazoConsorcio',240)));
+          const indicePrazo=plano?.prazos.indexOf(prazoCons)??-1;
+          const valido=!!plano&&indicePrazo>=0;
+          const calculo=valido?calcularParcelasTabela(valor,prazoCons,plano.adm[indicePrazo],2.5,0.03,plano):null;
+          const parcela=calculo?.mensal||0;
+          const detalhe=document.getElementById('resumoTabelaPatrimonial');
+          detalhe.textContent=valido
+            ? plano.nome+' · '+prazoCons+' meses · taxa adm. total '+plano.adm[indicePrazo]+'% · reserva 2,5% · seguro estimado 0,03% a.m.'
+            : 'Prazo não disponível nesta tabela. Selecione um prazo comercial válido: '+(plano?.prazos.join(', ')||'—')+'.';
           const aluguel=Math.max(0,num('aluguelPatrimonial',0));
           const vacancia=Math.max(0,Math.min(100,num('vacanciaPatrimonial',10)))/100;
           const despesas=Math.max(0,num('despesasPatrimoniais',0));
+          if(!valido){out.textContent='Selecione um prazo válido para a tabela imobiliária escolhida.';window.propostaIndice='';return;}
           if(!Number.isFinite(valorizacao)||valorizacao<=-100||valor<=0){out.textContent='Informe crédito e valorização válidos.';window.propostaIndice='';return;}
           const projetar=(prazo)=>valor*Math.pow(1+valorizacao/100,prazo/12);
           const imovelAquisicao=projetar(retirada);
@@ -1353,8 +1388,9 @@
           const mesesAluguel=Math.max(0,meses-retirada);
           const aluguelLiquidoMensal=aluguel*(1-vacancia)-despesas;
           const rendaAcumulada=aluguelLiquidoMensal*mesesAluguel;
-          const desembolso=parcela*meses;
-          const obrigacoesRestantes=parcela*Math.max(0,Math.floor(num('prazoConsorcio',meses))-meses);
+          const mesesComAntecipacao=Math.min(meses,calculo.mesesAntecipacao);
+          const desembolso=parcela*meses+mesesComAntecipacao*(calculo.primeira-parcela);
+          const obrigacoesRestantes=parcela*Math.max(0,prazoCons-meses)+Math.max(0,calculo.mesesAntecipacao-meses)*(calculo.primeira-parcela);
           const patrimonioLiquidoEstimado=imovelFinal-obrigacoesRestantes;
           const cartaCorrigida=Number.isFinite(taxa)&&taxa>-100?valor*Math.pow(1+taxa/100,meses/12):null;
           out.replaceChildren();
@@ -1363,9 +1399,11 @@
             ['Crédito inicial',fmt(valor)],
             ['Imóvel estimado no mês '+retirada,fmt(imovelAquisicao)],
             ['Imóvel estimado no mês '+meses,fmt(imovelFinal)],
-            ['Desembolso estimado em parcelas até o mês '+meses,parcela>0?fmt(desembolso):'Informe a parcela mensal'],
-            ['Obrigações futuras estimadas após o horizonte',parcela>0?fmt(obrigacoesRestantes):'Informe a parcela mensal'],
-            ['Patrimônio líquido estimado (valor do imóvel menos parcelas futuras)',parcela>0?fmt(patrimonioLiquidoEstimado):'Informe a parcela mensal'],
+            [calculo.mesesAntecipacao>1?'1ª à '+calculo.mesesAntecipacao+'ª parcela':calculo.mesesAntecipacao===1?'1ª parcela':'Parcela mensal',fmt(calculo.primeira)],
+            [calculo.mesesAntecipacao>1?(calculo.mesesAntecipacao+1)+'ª parcela em diante':calculo.mesesAntecipacao===1?'Demais parcelas':'Parcela mensal',fmt(parcela)],
+            ['Desembolso estimado em parcelas até o mês '+meses,fmt(desembolso)],
+            ['Obrigações futuras estimadas após o horizonte',fmt(obrigacoesRestantes)],
+            ['Patrimônio líquido estimado (valor do imóvel menos parcelas futuras)',fmt(patrimonioLiquidoEstimado)],
             ['Aluguel líquido mensal estimado',fmt(aluguelLiquidoMensal)],
             ['Renda acumulada de aluguel após aquisição',fmt(rendaAcumulada)],
             ['Carta corrigida no mês '+meses,cartaCorrigida!==null?fmt(cartaCorrigida):'Selecione índice disponível ou taxa manual']
@@ -1693,9 +1731,11 @@
             document.getElementById('prazoConsorcio').addEventListener('input',sincronizarPrazoPatrimonial);
             document.getElementById('vincularPrazoPatrimonial').addEventListener('change',sincronizarPrazoPatrimonial);
             document.getElementById('mesRetiradaIndice').addEventListener('input',calcularIndice);
+            preencherPlanosPatrimoniais();
+            document.getElementById('planoPatrimonial').addEventListener('change',calcularIndice);
             document.getElementById('cenarioPatrimonial').addEventListener('change',function(){if(this.value!=='manual')document.getElementById('valorizacaoIndice').value=this.value;calcularIndice();});
             document.getElementById('valorizacaoIndice').addEventListener('input',function(){document.getElementById('cenarioPatrimonial').value='manual';calcularIndice();});
-            ['parcelaPatrimonial','aluguelPatrimonial','vacanciaPatrimonial','despesasPatrimoniais','anosIndice'].forEach(id=>document.getElementById(id).addEventListener('input',calcularIndice));
+            ['aluguelPatrimonial','vacanciaPatrimonial','despesasPatrimoniais','anosIndice'].forEach(id=>document.getElementById(id).addEventListener('input',calcularIndice));
             consultarIndices();
             const atualizarCustosEPagamentos=()=>{
                 if(document.getElementById('encargosAutomaticosFin').checked)aplicarEncargosAutomaticosFinanciamento();
