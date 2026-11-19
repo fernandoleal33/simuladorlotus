@@ -31,7 +31,8 @@ assert.equal(tabela.imovel.delta.antecipacao,0);
 assert.equal(tabela.imovel.delta.adm[tabela.imovel.delta.prazos.indexOf(60)],15);
 assert.match(html,/condição personalizada \(não homologada\)/);
 assert.doesNotMatch(html,/gerarPropostaPDF|nomeClientePDF|Salvar esta simulação em PDF/);
-assert.match(html,/function gerarLinkConsultor\(\)/);
+assert.match(html,/function gerarLinkCompartilhamento\\(\\)/);
+assert.match(html,/id="tipoLinkGerador"/);
 console.log('6 referências e salvaguardas de compartilhamento verificadas.');
 
 // Revisão funcional: fórmulas de financiamento, campos de interface e envio.
@@ -60,25 +61,27 @@ for(const id of ['produto','credito','prazoConsorcio','prazoFin','entradaPct','s
 }
 assert.match(html,/Valor de Entrada:<\/span>\s*<strong id="valEntradaFin"/);
 assert.doesNotMatch(html,/Valor de Entrada Exigido|Valor de Entrada Obrigatória no Banco/);
-// Compartilhamento de cenário real: não apenas link genérico do consultor.
-for(const id of ['linkSimulacaoGerado','avisoLinkSimulacao']){
- assert.ok(html.includes('id="'+id+'"'),'Campo de link ausente: '+id);
+// Compartilhamento unificado: um painel para administrador e demais consultores.
+assert.match(html,/id="compartilharSimulador"/);
+assert.equal((html.match(/id="linkGerado"/g)||[]).length,1,'Só um campo de link');
+assert.ok(!html.includes('id="linkSimulacaoGerado"'),'Não exibir segundo link');
+assert.ok(!html.includes('id="painelConsultaCredito"'),'Painel de crédito anterior removido');
+for(const id of ['nomeGerador','telefoneGerador','tipoLinkGerador','avisoGerador']){
+ assert.ok(html.includes('id="'+id+'"'),'Campo de compartilhamento ausente: '+id);
 }
-assert.doesNotMatch(html,/id="painelConsultaCredito"|function registrarResultadoRestricaoCredito/);
-assert.match(html,/function criarUrlSimulacaoAtual\(\)/);
-assert.match(html,/function gerarLinkSimulacao\(\)/);
-assert.match(html,/function copiarLinkSimulacao\(\)/);
-assert.match(html,/function enviarLinkSimulacaoWhatsApp\(\)/);
-assert.match(html,/function aplicarSimulacaoCompartilhada\(\)/);
+for(const fn of ['gerarLinkCompartilhamento','copiarLinkCompartilhamento','enviarLinkCompartilhamentoWhatsApp','aplicarSimulacaoCompartilhada']){
+ assert.match(html,new RegExp('function '+fn+'\\('));
+}
 assert.match(html,/aplicarSimulacaoCompartilhada\(\);\s*\n\s*};/);
 assert.match(html,/api\.whatsapp\.com\/send\?text=/);
 assert.match(html,/else if\(codigo!=='manual'\)campo\.value=''/);
 const inicioLink=html.indexOf('const CAMPOS_LINK_SIMULACAO =');
 const fimLink=html.indexOf('function aplicarConsultor(){',inicioLink);
-assert.ok(inicioLink>0&&fimLink>inicioLink,'Funções de links compartilhados não encontradas');
+assert.ok(inicioLink>0&&fimLink>inicioLink,'Funções de compartilhamento não encontradas');
 const camposLink=new Map([
- ['nomeGerador',{value:''}],
- ['telefoneGerador',{value:''}],
+ ['nomeGerador',{value:'Fernando Leal'}],
+ ['telefoneGerador',{value:'(11) 94766-2843'}],
+ ['tipoLinkGerador',{value:'simulacao',tagName:'SELECT',options:[{value:'simulacao'},{value:'simulador'}]}],
  ['produto',{value:'auto',tagName:'SELECT',options:[{value:'auto'},{value:'imovel'}]}],
  ['credito',{value:'125.000,00',type:'text'}],
  ['prazoConsorcio',{value:'80',type:'number'}],
@@ -88,31 +91,34 @@ const camposLink=new Map([
  ['ajustarTaxaCenario',{checked:true,type:'checkbox'}],
  ['ativarReduzida',{checked:false,type:'checkbox'}],
  ['subBlocoReduzida',{style:{display:'none'}}],
- ['avisoLinkSimulacao',{textContent:''}],
- ['linkSimulacaoGerado',{value:''}]
+ ['avisoGerador',{textContent:''}],
+ ['linkGerado',{value:''}]
 ]);
+let calculosCompartilhamento=0;
 const localTeste={origin:'https://fernandoleal33.github.io',pathname:'/simuladorlotus/',search:''};
 const ambienteCompartilhamento=vm.createContext({
  window:{location:localTeste,open:()=>{}},
  document:{getElementById:id=>camposLink.get(id)||null},
  URL, URLSearchParams,
  navigator:{clipboard:{writeText:async()=>{}}},
- calcular:()=>{},
+ calcular:()=>{calculosCompartilhamento++;},
  mudarProduto:()=>{camposLink.get('credito').value='70.000,00';camposLink.get('prazoConsorcio').value='60';},
  aplicarTabelaUnifisa:()=>{},
  atualizarEmprestimoEmpresarial:()=>{},
  calcularIndice:()=>{},
  atualizarIndice:()=>{},
- consultorAtual:{nome:'Fernando Leal',numero:'5511947662843'},
- consultorPadrao:{nome:'Fernando Leal',numero:'5511947662843'},
- validarConsultor:(nome,numero)=>nome&&numero?{nome,numero}:null
+ validarConsultor:(nome,telefone)=>{
+  const digitos=String(telefone||'').replace(/\D/g,'');
+  if(!nome||digitos.length<10)return null;
+  return {nome,numero:digitos.length===11?'55'+digitos:digitos};
+ }
 });
 vm.runInContext(html.slice(inicioLink,fimLink),ambienteCompartilhamento);
-const enderecoGerado=new URL(ambienteCompartilhamento.criarUrlSimulacaoAtual());
+const linkOriginal=ambienteCompartilhamento.gerarLinkCompartilhamento();
+const enderecoGerado=new URL(linkOriginal);
 assert.equal(enderecoGerado.pathname,'/simuladorlotus/');
 assert.equal(enderecoGerado.searchParams.get('consultor'),'Fernando Leal');
 assert.equal(enderecoGerado.searchParams.get('whatsapp'),'5511947662843');
-assert.equal(camposLink.get('nomeGerador').value,'','Campo de outro consultor deve permanecer vazio');
 assert.equal(enderecoGerado.searchParams.get('sim'),'1');
 assert.equal(enderecoGerado.searchParams.get('produto'),'auto');
 assert.equal(enderecoGerado.searchParams.get('s_credito'),'125.000,00');
@@ -120,7 +126,8 @@ assert.equal(enderecoGerado.searchParams.get('s_planoUnifisa'),'gamma');
 assert.equal(enderecoGerado.searchParams.get('s_lanceLivre'),'10.000,00');
 assert.equal(enderecoGerado.searchParams.get('s_ajustarTaxaCenario'),'1');
 assert.equal(enderecoGerado.hash,'#simulador');
-assert.ok(!enderecoGerado.toString().includes('CPF'),'Link não deve incluir CPF');
+assert.ok(!enderecoGerado.toString().includes('CPF'),'Não compartilhar documentos pessoais');
+assert.equal(calculosCompartilhamento,1);
 camposLink.get('produto').value='imovel';
 camposLink.get('credito').value='300.000,00';
 camposLink.get('planoUnifisa').value='';
@@ -132,7 +139,20 @@ assert.equal(camposLink.get('prazoConsorcio').value,'80');
 assert.equal(camposLink.get('planoUnifisa').value,'gamma');
 assert.equal(camposLink.get('lanceLivre').value,'10.000,00');
 assert.equal(camposLink.get('ajustarTaxaCenario').checked,true);
-console.log('Link da simulação: geração e abertura com valores, plano e lances preservados.');
+assert.equal(calculosCompartilhamento,3,'Recalcula cenário na abertura');
+camposLink.get('tipoLinkGerador').value='simulador';
+camposLink.get('nomeGerador').value='Outro Consultor';
+camposLink.get('telefoneGerador').value='(11) 98888-7777';
+const linkLivre=ambienteCompartilhamento.gerarLinkCompartilhamento();
+const enderecoLivre=new URL(linkLivre);
+assert.equal(enderecoLivre.searchParams.get('consultor'),'Outro Consultor');
+assert.equal(enderecoLivre.searchParams.get('whatsapp'),'5511988887777');
+assert.equal(enderecoLivre.searchParams.get('sim'),null,'Simulador em branco sem simulação embutida');
+assert.equal(enderecoLivre.searchParams.get('s_credito'),null);
+assert.equal(calculosCompartilhamento,3,'Link em branco não recalcula');
+camposLink.get('nomeGerador').value='';
+assert.equal(ambienteCompartilhamento.gerarLinkCompartilhamento(),'','Nome vazio não gera link');
+console.log('Compartilhamento unificado: administrador, outros consultores, cenário e link livre conferidos.');
 
 assert.match(html,/function enviarWhatsApp\(\)/);
 assert.match(html,/https:\/\/wa\.me\/'\+consultorAtual\.numero/);
