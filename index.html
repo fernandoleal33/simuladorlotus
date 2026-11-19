@@ -293,6 +293,14 @@
                                 <option value="manual">Personalizar taxa</option>
                             </select>
                             <p class="text-[10px] text-slate-400 mt-1" id="notaBanco">Referência BCB: financiamento imobiliário PF com taxas de mercado pós-fixadas em TR, outubro/2026. Parte fixa + TR, não é cotação nem CET.</p>
+                            <div id="blocoTipoImovelFin" class="mt-3">
+                                <label for="tipoImovelFin" class="block text-xs font-medium text-slate-300 mb-1">Finalidade do financiamento imobiliário</label>
+                                <select id="tipoImovelFin" onchange="alterarTipoImovelFin()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white">
+                                    <option value="sfh">Habitação — SFH (quando elegível)</option>
+                                    <option value="sfi">Habitação — SFI</option>
+                                    <option value="comercial">Aquisição de imóvel comercial (PF)</option>
+                                </select>
+                            </div>
                         </div>
                         <div id="blocoCreditoEmpresarial" style="display:none;" class="bg-slate-900/60 border border-slate-700 rounded-lg p-3 space-y-2">
                             <label class="block text-xs font-medium text-emerald-400">Modalidade de empréstimo para comparação</label>
@@ -302,9 +310,16 @@
                                 <option value="rural">Crédito rural / agrário — escolher linha</option>
                                 <option value="pronampe">Pronampe — micro e pequenas empresas</option>
                             </select>
+                            <div id="blocoTomadorFin" style="display:none">
+                                <label for="perfilTomadorFin" class="block text-xs text-slate-300 mb-1">Tomador do crédito com garantia</label>
+                                <select id="perfilTomadorFin" onchange="alterarPerfilTomadorFin()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-white">
+                                    <option value="pf">Pessoa física — IOF estimado</option>
+                                    <option value="pj">Pessoa jurídica — IOF da proposta a confirmar</option>
+                                </select>
+                            </div>
                             <div id="seletorCreditoRural" style="display:none"><label class="block text-xs text-slate-300">Linha de crédito rural (Plano Safra 2026/2027)</label><select id="linhaCreditoRural" onchange="atualizarEmprestimoEmpresarial()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white"><option value="pronamp">Pronamp — custeio (9,00% a.a.)</option><option value="custeio">Custeio empresarial (12,50% a.a.)</option><option value="inovagro">Inovagro (11,50% a.a.)</option><option value="moderfrota">Moderfrota (12,50% a.a.)</option><option value="moderfrotaPronamp">Moderfrota Pronamp (11,50% a.a.)</option><option value="cooperativa">Prodecoop / Procap-Agro (12,00% a.a.)</option><option value="renovagro">RenovAgro Ambiental / Pastagens (8,50% a.a.)</option></select></div>
                             <p id="notaEmprestimo" class="text-xs text-amber-200" role="status"></p>
-                            <p class="text-xs text-slate-400">Taxa anual efetiva editável abaixo. IOF, tarifas, indexadores, carência e CET devem ser conferidos na proposta; os cálculos atuais não incorporam esses custos.</p>
+                            <p class="text-xs text-slate-400">IOF e despesas estimados quando houver dados; confirme incidência e CET na proposta.</p>
                         </div>
                         <div id="blocoBancoAuto" style="display:none;">
                             <label class="block text-xs font-medium text-slate-300 mb-1">Banco / referência de taxa para automóveis</label>
@@ -335,13 +350,6 @@
                         <!-- Cálculo automático interno de encargos; sem campos extras na interface. -->
                         <div id="blocoEncargosFinanciamento" hidden aria-hidden="true" style="display:none">
                             <input id="encargosAutomaticosFin" type="checkbox" checked>
-                            <div id="blocoTipoImovelFin">
-                                <select id="tipoImovelFin">
-                                    <option value="sfh">Habitacional SFH (premissa padrão)</option>
-                                    <option value="sfi">Habitacional SFI</option>
-                                    <option value="comercial">Imóvel comercial / não habitacional</option>
-                                </select>
-                            </div>
                             <span id="notaBaseEncargosFin"></span>
                             <select id="iofModoFin">
                                 <option value="isento">Não incidente em crédito habitacional elegível</option>
