@@ -299,10 +299,10 @@
                             <select id="modalidadeEmprestimo" onchange="atualizarEmprestimoEmpresarial()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white">
                                 <option value="home">Home Equity — garantia de imóvel</option>
                                 <option value="veiculo">Refinanciamento — garantia de veículo</option>
-                                <option value="rural">Crédito rural / agrário — 12,50% a.a.</option>
+                                <option value="rural">Crédito rural / agrário — escolher linha</option>
                                 <option value="pronampe">Pronampe — micro e pequenas empresas</option>
                             </select>
-                            <div id="seletorCreditoRural" style="display:none"><label class="block text-xs text-slate-300">Linha de crédito rural (Plano Safra 2026/2027)</label><select id="linhaCreditoRural" onchange="atualizarEmprestimoEmpresarial()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white"><option value="pronamp">Pronamp — custeio (9,00% a.a.)</option><option value="custeio">Custeio empresarial (12,50% a.a.)</option><option value="inovagro">Inovagro (11,50% a.a.)</option><option value="moderfrota">Moderfrota (12,50% a.a.)</option><option value="cooperativa">Prodecoop / Procap-Agro (12,00% a.a.)</option><option value="renovagro">RenovAgro Ambiental / Pastagens (8,50% a.a.)</option></select></div>
+                            <div id="seletorCreditoRural" style="display:none"><label class="block text-xs text-slate-300">Linha de crédito rural (Plano Safra 2026/2027)</label><select id="linhaCreditoRural" onchange="atualizarEmprestimoEmpresarial()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white"><option value="pronamp">Pronamp — custeio (9,00% a.a.)</option><option value="custeio">Custeio empresarial (12,50% a.a.)</option><option value="inovagro">Inovagro (11,50% a.a.)</option><option value="moderfrota">Moderfrota (12,50% a.a.)</option><option value="moderfrotaPronamp">Moderfrota Pronamp (11,50% a.a.)</option><option value="cooperativa">Prodecoop / Procap-Agro (12,00% a.a.)</option><option value="renovagro">RenovAgro Ambiental / Pastagens (8,50% a.a.)</option></select></div>
                             <p id="notaEmprestimo" class="text-xs text-amber-200" role="status"></p>
                             <p class="text-xs text-slate-400">Taxa anual efetiva editável abaixo. IOF, tarifas, indexadores, carência e CET devem ser conferidos na proposta; os cálculos atuais não incorporam esses custos.</p>
                         </div>
@@ -590,16 +590,17 @@
             const nome=sel.options[sel.selectedIndex]?.textContent||'Instituição selecionada';
             document.getElementById('ajustarTaxaCenario').checked=false;
             const referencias={
-                pesados:{geral:16.10,finame:18.76,origem:'16,10% a.a. é cenário ilustrativo de pesados; 18,76% a.a. é referência FINAME divulgada para outubro/2026, não taxa contratada.'},
-                maquinario:{geral:18.76,finame:18.76,origem:'18,76% a.a. é referência ilustrativa FINAME divulgada para outubro/2026, não média específica do banco.'},
-                embarcacao:{geral:15.00,finame:15.00,origem:'15,00% a.a. é hipótese de simulação, sem média bancária específica verificada para embarcações.'}
+                pesados:{geral:16.10,finame:18.76,origem:'16,10% a.a. para pesados e 18,76% a.a. para FINAME são HIPÓTESES, não taxas verificadas do banco. FINAME combina componentes financeiros e custos do agente.'},
+                maquinario:{geral:18.76,finame:18.76,origem:'18,76% a.a. para maquinários/FINAME é HIPÓTESE de comparação, não média verificada para a instituição.'},
+                embarcacao:{geral:15.00,finame:15.00,origem:'15,00% a.a. para embarcações é HIPÓTESE de cenário, não média bancária verificada.'}
             };
             const ref=referencias[produto];
             const taxa=sel.value==='bb'&&produto!=='embarcacao'?ref.finame:ref.geral;
             document.getElementById('jurosBanco').value=taxa.toFixed(2);
             document.getElementById('notaBancoEspecial').textContent=
-                (sel.value==='manual'?'Referência inicial editável. ':nome+': referência de segmento, não cotação desta instituição. ')+
-                ref.origem+' Ajuste a taxa conforme proposta real; confirme CET, entrada, prazo, garantias e indexadores.';
+                'HIPÓTESE ILUSTRATIVA — NÃO é taxa verificada do banco. '+
+                (sel.value==='manual'?'Referência editável. ':nome+': sem cotação específica confirmada. ')+
+                ref.origem+' Informe a taxa da proposta efetiva anual; confira CET, entrada, garantias e indexadores.';
             atualizarTaxaCenario();
             calcular();
         }
@@ -628,21 +629,41 @@
                 seletor.value = 'manual';
                 }
         }
+        // Plano Safra 2026/2027: referências POR LINHA, não taxa uniforme por banco.
+        // Fonte MAPA e BNDES: dependerão de enquadramento, recursos, finalidade e agente.
+        // https://www.gov.br/agricultura/pt-br/assuntos/politica-agricola/plano-safra/2026-2027/credito-inovador
+        const linhasCreditoRural = {
+            pronamp:{taxa:9.00,nome:'Pronamp — custeio'},
+            custeio:{taxa:12.50,nome:'Custeio empresarial'},
+            inovagro:{taxa:11.50,nome:'Inovagro'},
+            moderfrota:{taxa:12.50,nome:'Moderfrota'},
+            moderfrotaPronamp:{taxa:11.50,nome:'Moderfrota Pronamp'},
+            cooperativa:{taxa:12.00,nome:'Prodecoop / Procap-Agro'},
+            renovagro:{taxa:8.50,nome:'RenovAgro Ambiental / Pastagens'}
+        };
         function atualizarEmprestimoEmpresarial(){
             if(document.getElementById('produto').value!=='capital_giro')return;
             const modo=document.getElementById('modalidadeEmprestimo').value;
             const campo=document.getElementById('jurosBanco');
             const nota=document.getElementById('notaEmprestimo');
-            document.getElementById('seletorCreditoRural').style.display='none';
+            const blocoRural=document.getElementById('seletorCreditoRural');
+            blocoRural.style.display=modo==='rural'?'block':'none';
             document.getElementById('ajustarTaxaCenario').checked=false;
-            const dados={
-                home:{taxa:18.16,nota:'Hipótese ilustrativa de 1,40% a.m. (18,16% a.a. efetivos), NÃO é taxa oficial ou cotação de Home Equity. Confirme CET, indexador e garantia.'},
-                veiculo:{taxa:23.87,nota:'Hipótese ilustrativa de 1,80% a.m. (23,87% a.a. efetivos), NÃO é taxa oficial ou cotação de refinanciamento de veículo. Confirme CET e garantia.'},
-                rural:{taxa:12.5,nota:'Crédito rural: referência de 12,50% ao ano para o cenário empresarial solicitado. Confirme finalidade, enquadramento, disponibilidade e CET na proposta.'},
-                pronampe:{taxa:19.75,nota:'Pronampe: simulação pelo TETO Selic meta de 13,75% + 6 p.p. = 19,75% a.a. (Selic conferida em 11/11/2026). Taxa variável; não é taxa fixa garantida ou CET. Atualize a referência após decisões do Copom. Prazo máximo: 72 meses.'}
-            };
-            campo.value=dados[modo].taxa.toFixed(2);
-            nota.textContent=dados[modo].nota;
+            if(modo==='rural'){
+                const campoLinha=document.getElementById('linhaCreditoRural');
+                const linha=linhasCreditoRural[campoLinha.value]||linhasCreditoRural.pronamp;
+                campo.value=linha.taxa.toFixed(2);
+                nota.textContent='Plano Safra 2026/2027 — '+linha.nome+': referência '+linha.taxa.toFixed(2).replace('.',',')+'% a.a. da LINHA, não cotação de banco. Depende de enquadramento, finalidade e disponibilidade. Carência, indexadores, seguros e CET devem ser confirmados na proposta.';
+            }else{
+                const dados={
+                    home:{taxa:18.16,nota:'HIPÓTESE ilustrativa: 1,40% a.m. (18,16% a.a. efetivos), NÃO é taxa média verificada para Home Equity. Confirmar garantia, indexadores, encargos e CET.'},
+                    veiculo:{taxa:23.87,nota:'HIPÓTESE ilustrativa: 1,80% a.m. (23,87% a.a. efetivos), NÃO é taxa média verificada para refinanciamento de veículos. Confirmar garantias e CET.'},
+                    pronampe:{taxa:19.75,nota:'Pronampe: TETO de referência Selic 13,75% (Copom 04/11/2026) + 6 p.p. = 19,75% a.a. Pode variar; não é oferta nem CET. Verifique as condições e o prazo máximo de 72 meses.'}
+                };
+                const referencia=dados[modo]||dados.home;
+                campo.value=referencia.taxa.toFixed(2);
+                nota.textContent=referencia.nota;
+            }
             if(modo==='pronampe'&&Number(document.getElementById('prazoFin').value)>72)document.getElementById('prazoFin').value=72;
             calcular();
         }
@@ -689,6 +710,16 @@
             // Atualizar o menu imediatamente, antes de qualquer cálculo ou chamada externa.
             preencherOpcoesTabela();
             const p = presets[prod] || presets.imovel;
+            const avisosPorProduto={
+                moto:'Taxa inicial de motos é HIPÓTESE de simulação, não média verificada específica de banco. Confira a proposta e CET.',
+                luxo:'Bancos exibem médias de veículos PF em geral; NÃO são taxas validadas para veículos de luxo. Confirme proposta e CET.',
+                pesados:'Taxa inicial de pesados é HIPÓTESE ilustrativa, não média bancária específica verificada. Confirme CET, condições e garantias.',
+                maquinario:'Taxa inicial de maquinários é HIPÓTESE ilustrativa, não média bancária verificada. Em FINAME, confira remuneração do agente.',
+                embarcacao:'Taxa inicial náutica é HIPÓTESE ilustrativa, não média bancária verificada. Confirme proposta e CET.',
+                servicos:'Taxa inicial de serviços/eletrônicos é HIPÓTESE ilustrativa, não referência bancária verificada para essa modalidade.',
+                capital_giro:'Selecione a modalidade. Taxas de empréstimos com garantia são hipóteses; taxas rurais dependem da linha e do enquadramento.'
+            };
+            document.getElementById('txtTipoFinanciamento').textContent=avisosPorProduto[prod]||'Taxa editável. As médias de referência não são CET e podem excluir indexadores, seguros, tarifas e demais encargos.';
             document.getElementById('prazoConsorcio').value=p.pc;
             document.getElementById('prazoFin').value=p.pf;
             document.getElementById('credito').value=p.credito;
@@ -1269,10 +1300,11 @@
           for(const id of ['credito','prazoConsorcio','planoUnifisa'])restaurar(id);
           if(document.getElementById('planoUnifisa').value)aplicarTabelaUnifisa();
           restaurar('modalidadeEmprestimo');
+          restaurar('linhaCreditoRural');
           if(valorProduto==='capital_giro')atualizarEmprestimoEmpresarial();
           restaurar('bancoFin');restaurar('bancoAuto');restaurar('bancoEspecial');
           for(const id of CAMPOS_LINK_SIMULACAO){
-            if(['credito','prazoConsorcio','planoUnifisa','modalidadeEmprestimo','bancoFin','bancoAuto','bancoEspecial'].includes(id))continue;
+            if(['credito','prazoConsorcio','planoUnifisa','modalidadeEmprestimo','linhaCreditoRural','bancoFin','bancoAuto','bancoEspecial'].includes(id))continue;
             restaurar(id);
           }
           document.getElementById('subBlocoReduzida').style.display=document.getElementById('ativarReduzida').checked?'block':'none';
