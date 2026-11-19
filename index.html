@@ -419,21 +419,6 @@
                     </p>
                 </div>
 
-                <!-- Action Buttons for WhatsApp & Testing -->
-                <div class="bg-slate-800/60 border border-slate-700/60 p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div>
-                        <h4 class="text-sm font-semibold text-white">Testar Envio via WhatsApp</h4>
-                        <p class="text-xs text-slate-400">Clique ao lado para abrir o WhatsApp com a proposta formatada pronta para o cliente.</p>
-                    </div>
-                    <div class="flex items-center gap-3 w-full sm:w-auto">
-                        <button onclick="copiarProposta()" class="w-full sm:w-auto bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2.5 rounded-xl text-xs transition">
-                            Copiar Texto
-                        </button>
-                        <button onclick="enviarWhatsApp()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-5 py-2.5 rounded-xl text-xs transition shadow-md shadow-emerald-950">
-                            <span id="telefoneBotao">Enviar no WhatsApp (11) 94766-2843</span>
-                        </button>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -455,7 +440,7 @@
       <option value="simulacao">Simulação atual — com os valores que preenchi</option>
       <option value="simulador">Simulador — para o cliente preencher do zero</option>
     </select>
-    <p class="text-xs text-slate-400 mt-2">Para compartilhar valores específicos, configure primeiro a simulação acima. O link carrega os parâmetros e recalcula os resultados ao abrir; não é uma proposta aprovada.</p>
+    <p class="text-xs text-slate-400 mt-2">Para compartilhar valores específicos, configure primeiro a simulação acima. O link carrega os parâmetros e recalcula os resultados ao abrir; não é uma proposta aprovada. O cliente verá o WhatsApp informado acima como contato do consultor.</p>
     <div class="flex flex-wrap gap-3 my-4">
       <button type="button" onclick="gerarLinkCompartilhamento()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg">Gerar link</button>
       <button type="button" onclick="copiarLinkCompartilhamento()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg">Copiar link</button>
@@ -962,23 +947,6 @@
             const bancoSelecionado = produto === 'imovel' ? document.getElementById('bancoFin').selectedOptions[0].text : produto === 'auto' ? document.getElementById('bancoAuto').selectedOptions[0].text : 'Taxa personalizada';
             window.__simulacaoAtual={taxaEstimada:document.getElementById('ajustarTaxaCenario').checked && (produto==='imovel' || produto==='auto') && bancoSelecionado!=='Personalizar taxa',produto:produtoEl.options[produtoEl.selectedIndex].text,credito,prazoCons,prazoFin,mesCont,parcelaPre,parcelaPos,lanceLivre:lanceProprioAplicado,lanceEmbutido:embutidoAplicado,creditoLiquido,desembolsoCons,custoFin,diferenca,juros:fin.juros,entrada:valorEntrada,sistema,banco:bancoSelecionado,taxaAnual:jurosAA};
         }
-        function textoProposta() {
-            if(document.getElementById('produto').value==='investimento')return window.propostaIndice||'Calcule a projeção patrimonial antes de compartilhar.';
-            const s=window.__simulacaoAtual;
-            if (!s) return 'Faça uma simulação antes de compartilhar.';
-            return `📊 *Simulação ilustrativa — Consórcio x Financiamento*\nConsultor: ${consultorAtual.nome}\n\n• Segmento: ${s.produto}\n• Crédito de referência: ${fmt(s.credito)}\n• Crédito líquido no consórcio após lance embutido: ${fmt(s.creditoLiquido)}\n• Contemplação considerada apenas como hipótese: mês ${s.mesCont}\n• Parcela pré-contemplação: ${fmt(s.parcelaPre)}\n• Parcela pós-contemplação estimada: ${fmt(s.parcelaPos)}\n• Lance próprio aplicado: ${fmt(s.lanceLivre)}\n• Lance embutido aplicado: ${fmt(s.lanceEmbutido)}\n• Desembolso estimado no consórcio: ${fmt(s.desembolsoCons)}\n• Entrada no financiamento: ${fmt(s.entrada)}\n• Banco / referência: ${s.banco}\n• Taxa efetiva anual ${s.taxaEstimada ? "estimada (cenário ilustrativo)" : "informada"}: ${s.taxaAnual.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}% a.a.\n• Juros estimados do financiamento: ${fmt(s.juros)}\n• Desembolso estimado no financiamento: ${fmt(s.custoFin)}\n\nValores nominais e ilustrativos. Ajustes automáticos de taxa por entrada e prazo são hipóteses de sensibilidade, não regras dos bancos ou ofertas aprovadas. Não incluem necessariamente reajustes, seguros, tarifas, tributos ou custos previstos em contrato. A contemplação não é garantida no mês indicado.\n\n📲 ${consultorAtual.nome} — ${consultorAtual.formatado}`;
-        }
-        function enviarWhatsApp() {
-            const url='https://wa.me/'+consultorAtual.numero+'?text='+encodeURIComponent(textoProposta());
-            window.open(url,'_blank','noopener');
-        }
-        async function copiarProposta() {
-            const txt=textoProposta();
-            try { await navigator.clipboard.writeText(txt); alert('Proposta copiada!'); }
-            catch(e) { window.prompt('Copie a proposta abaixo:',txt); }
-        }
-        
-
         const historicoIndices={};
         async function consultarIndices(){
           document.getElementById('statusIndice').textContent='Consultando dados oficiais...';
@@ -1264,10 +1232,12 @@
           const link=gerarLinkCompartilhamento();
           if(!link)return;
           const modo=document.getElementById('tipoLinkGerador').value;
-          const texto=modo==='simulacao'
+          const dados=validarConsultor(document.getElementById('nomeGerador').value,document.getElementById('telefoneGerador').value);
+          const contato=dados?'\n\nConsultor: '+dados.nome+' | WhatsApp: '+dados.formatado:'';
+          const texto=(modo==='simulacao'
             ?'Olá! Segue sua simulação ilustrativa no SimuladorLotus. Confira os valores e as condições estimadas: '+link
-            :'Olá! Acesse o SimuladorLotus para fazer uma simulação ilustrativa e conhecer as possibilidades: '+link;
-          // Sem número de destino fixo: o usuário escolhe o cliente no WhatsApp.
+            :'Olá! Acesse o SimuladorLotus para fazer uma simulação ilustrativa e conhecer as possibilidades: '+link)+contato;
+          // O destinatário é selecionado no WhatsApp; o número do consultor fica no link e no texto.
           window.open('https://api.whatsapp.com/send?text='+encodeURIComponent(texto),'_blank','noopener,noreferrer');
         }
         function aplicarSimulacaoCompartilhada() {
@@ -1320,7 +1290,6 @@
           document.getElementById('nomeRodape').textContent=d.nome;
           document.getElementById('telefoneCabecalho').textContent=d.formatado;
           document.getElementById('telefoneRodape').textContent=d.formatado;
-          document.getElementById('telefoneBotao').textContent='Enviar no WhatsApp '+d.formatado;
           document.getElementById('whatsappNav').href='https://wa.me/'+d.numero+'?text='+encodeURIComponent('Olá, '+d.nome+'! Gostaria de conversar sobre consórcio.');
           document.getElementById('whatsappCabecalho').href='https://wa.me/'+d.numero+'?text='+encodeURIComponent('Olá! Gostaria de saber mais sobre consórcio.');
           document.getElementById('instagramRodape').hidden=d.nome!==consultorPadrao.nome||d.numero!==consultorPadrao.numero;
