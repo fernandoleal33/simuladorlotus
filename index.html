@@ -445,7 +445,7 @@
                             <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400">Juros totais:</span> <strong id="valJurosBanco" class="text-red-400">R$ 0</strong></div>
                             <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400">Total das parcelas:</span> <strong id="valTotalParcelasFin">R$ 0</strong></div>
                             <div class="flex justify-between py-1 pt-1"><span class="text-slate-200 font-semibold">Desembolso total estimado:</span> <strong id="valCustoBanco" class="text-white">R$ 0</strong></div>
-                            <p class="text-[10px] text-slate-400">Valores estimados; R$ 0 pode indicar custo não identificado, não isenção. Não é o CET oficial.</p>
+                            <p class="text-[10px] text-slate-400">Valores estimados; “A confirmar” não integra o total. Não é o CET oficial.</p>
                             <div hidden aria-hidden="true">
                                 <strong id="valPrincipalFin">R$ 0</strong>
                                 <strong id="valInicialFin">R$ 0</strong>
@@ -858,11 +858,15 @@
                 porId('tarifaAvaliacaoFin').value=arredondarCustoFin(avaliacao).toFixed(2);
                 // Hipóteses para visualização, NÃO coeficientes divulgados por banco ou seguradora.
                 // Prêmios efetivos dependem da idade, composição da renda, apólice e avaliação.
-                porId('seguroMIPFin').value=arredondarCustoFin(principal*0.00020).toFixed(2);
-                porId('seguroDFIFin').value=arredondarCustoFin(credito*0.00006).toFixed(2);
+                if(tipo!=='comercial'){
+                    porId('seguroMIPFin').value=arredondarCustoFin(principal*0.00020).toFixed(2);
+                    porId('seguroDFIFin').value=arredondarCustoFin(credito*0.00006).toFixed(2);
+                }
                 if(tipo==='sfh')porId('tarifaAdmMensalFin').value='25.00';
                 explicacao=(perfil?perfil.fonte:'Avaliação de R$ 1.500 é PREMISSA GENÉRICA para planejamento, NÃO tarifa publicada do banco selecionado.')+
-                    ' MIP de 0,020% ao mês sobre o crédito financiado e DFI de 0,006% ao mês sobre o valor do bem são HIPÓTESES genéricas, não preços de apólice; variam com idade, saldo, risco e seguradora.'+
+                    (tipo==='comercial'
+                      ?' Uso comercial: não foram adicionados MIP/DFI habitacionais, pois seguros da operação exigem proposta específica. Taxa bancária PF de habitação não representa cotação comercial.'
+                      :' MIP de 0,020% ao mês sobre o crédito financiado e DFI de 0,006% ao mês sobre o valor do bem são HIPÓTESES genéricas, não preços de apólice; variam com idade, saldo, risco e seguradora.')+
                     (tipo==='sfh'?' Administração de R$ 25/mês é uma premissa SFH baseada em referências públicas; confirme se incide no contrato.':' Tarifa administrativa mensal não estimada para esta modalidade.');
             }else if(['auto','luxo','moto'].includes(produto)){
                 const perfil=REFERENCIAS_DESPESAS_POR_BANCO.auto[banco];
@@ -1132,7 +1136,8 @@
             document.getElementById('valEntradaText').textContent=`Entrada estimada: ${fmt(valorEntrada)} (${fmtPct(valorEntradaPct)})`;
             document.getElementById('valEntradaFin').textContent=`${fmt(valorEntrada)} (${fmtPct(valorEntradaPct)})`;
             document.getElementById('valPrincipalFin').textContent=fmt(principalFin);
-            document.getElementById('valIOFFin').textContent=fmt(custosFin.iof);
+            const iofPendente=principalFin>0&&document.getElementById('iofModoFin').value==='manual'&&num('iofManualFin',0)<=0;
+            document.getElementById('valIOFFin').textContent=iofPendente?'A confirmar':fmt(custosFin.iof);
             document.getElementById('valTarifasFin').textContent=fmt(custosFin.tarifas+custosFin.totalAdministracao);
             document.getElementById('valSaldoFin').textContent=fmt(custosFin.saldoFinanciado);
             document.getElementById('valInicialFin').textContent=fmt(valorEntrada+custosFin.pagoAVista);
@@ -1144,6 +1149,7 @@
             document.getElementById('valTotalParcelasFin').textContent=fmt(totalParcelasFin);
             document.getElementById('valCustoBanco').textContent=fmt(custoFin);
             document.getElementById('notaEncargosFin').textContent=
+                (iofPendente?'IOF pendente de proposta: desembolso total é parcial. ':'')+
                 (custosFin.financiar?'IOF e despesas iniciais incorporados ao saldo e sujeitos a juros. ':'IOF e despesas iniciais pagos à vista. ')+
                 'Seguros e tarifas mensais supostos constantes; cálculo não constitui CET bancário. Consulte o contrato para valores e incidência.';
             document.getElementById('labelParcPos').textContent=modoAbate==='parcela'
