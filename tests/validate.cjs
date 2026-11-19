@@ -3,6 +3,37 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const html=fs.readFileSync('index.html','utf8');
+// A versão dedicada da gerente Soraia deve receber as mesmas regras financeiras.
+const soraia=fs.readFileSync('soraia/index.html','utf8');
+assert.match(soraia,/const consultorPadrao = \{nome:'Soraia Mello - Gerente',numero:'5511999297191'\}/);
+assert.match(soraia,/consultorAtual=validarConsultor\(consultorPadrao.nome,consultorPadrao.numero\)/);
+assert.match(soraia,/id="nomeMarca">SORAIA MELLO<\/span> <span>\| GERENTE<\/span>/);
+assert.match(soraia,/id="nomeRodape">Soraia Mello - Gerente<\/span> \| Gerente — Unifisa/);
+assert.match(soraia,/href="\.\.\/manifest.webmanifest"/);
+assert.match(soraia,/navigator.serviceWorker.register\('\.\.\/sw.js'\)/);
+assert.doesNotMatch(soraia,/Fernando Leal|5511947662843|@fernandoconsultorunifisa/);
+assert.match(soraia,/value="Soraia Mello - Gerente" readonly/);
+assert.match(soraia,/value="\(11\) 99929-7191" readonly/);
+function compararTrechosMatrizSoraia(inicio,fim){
+ const a=html.indexOf(inicio),b=soraia.indexOf(inicio);
+ assert.ok(a>=0&&b>=0,'Seção não encontrada: '+inicio);
+ const ea=html.indexOf(fim,a+inicio.length),eb=soraia.indexOf(fim,b+inicio.length);
+ assert.ok(ea>a&&eb>b,'Fim de seção não encontrado: '+fim);
+ assert.equal(soraia.slice(b,eb),html.slice(a,ea),'Versões divergentes na seção financeira: '+inicio);
+}
+for(const [inicio,fim] of [
+ ['const tabelaPlanos =','function preencherOpcoesTabela()'],
+ ['const taxasBancosImobiliario =','let taxaBaseSelecionada ='],
+ ['const taxasBancosAuto =','// Instituições de referência por segmento.'],
+ ['const linhasCreditoRural =','function alternarVitrine(indice)'],
+ ['const CAMPOS_ENCARGOS_FIN=','function calcularFinanciamento('],
+ ['function calcularFinanciamento(','function desenharGraficoComparativo('],
+ ['function gerarLinkCompartilhamento()','function aplicarSimulacaoCompartilhada()']
+])compararTrechosMatrizSoraia(inicio,fim);
+assert.match(soraia,/function modoIOFConformeFinalidade\(\)/);
+assert.match(soraia,/iofPendente\?'A confirmar':fmt\(custosFin\.iof\)/);
+console.log('Versão Soraia: identidade independente, links e cálculos sincronizados com a matriz.');
+
 const plan=html.match(/const tabelaPlanos\s*=\s*(\{[\s\S]*?\});\s*function preencherOpcoesTabela/);
 assert.ok(plan,'Cadastro de planos não encontrado');
 const tabela=Function('"use strict";return ('+plan[1]+')')();
