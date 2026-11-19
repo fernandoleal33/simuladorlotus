@@ -135,6 +135,7 @@ const camposAuto=new Map([
 const ctxAuto=vm.createContext({
  document:{getElementById:id=>camposAuto.get(id)||null},
  atualizarTaxaCenario:()=>{},
+ aplicarEncargosAutomaticosFinanciamento:()=>{},
  calcular:()=>{},
  taxaBaseSelecionada:null
 });
@@ -159,6 +160,15 @@ const fimEncargos=html.indexOf('function calcularFinanciamento(',inicioEncargos)
 assert.ok(inicioEncargos>=0 && fimEncargos>inicioEncargos,'Funções de encargos não encontradas');
 const camposEncargos=new Map([
  ['produto',{value:'auto'}],
+ ['credito',{value:'100.000,00'}],
+ ['entradaPct',{value:'20'}],
+ ['bancoFin',{value:'santander'}],
+ ['bancoAuto',{value:'pan'}],
+ ['bancoEspecial',{value:'manual'}],
+ ['tipoImovelFin',{value:'sfh'}],
+ ['encargosAutomaticosFin',{checked:false}],
+ ['notaBaseEncargosFin',{textContent:''}],
+ ['blocoTipoImovelFin',{style:{display:'none'}}],
  ['iofModoFin',{value:'auto_pf'}],
  ['iofManualFin',{value:'450'}],
  ['seguroMIPFin',{value:'85'}],
@@ -179,6 +189,7 @@ const camposEncargos=new Map([
 const ctxEncargos=vm.createContext({
  document:{getElementById:id=>camposEncargos.get(id)||null},
  num:(id,def=0)=>{const n=Number(camposEncargos.get(id)?.value);return Number.isFinite(n)?n:def;},
+ parseMoeda:v=>Number(String(v||'').replace(/\./g,'').replace(',','.')),
  calcular:()=>{}
 });
 vm.runInContext(html.slice(inicioEncargos,fimEncargos),ctxEncargos);
@@ -219,11 +230,34 @@ assert.equal(camposEncargos.get('blocoIOFManualFin').style.display,'block');
 assert.equal(ctxEncargos.calcularEncargosFinanciamento('imovel',240000,12,360,'sac').iof,450);
 ctxEncargos.prepararEncargosFinanciamento();
 assert.equal(camposEncargos.get('iofModoFin').value,'isento');
-assert.equal(camposEncargos.get('tarifaAvaliacaoFin').value,'0');
+assert.equal(camposEncargos.get('tarifaAvaliacaoFin').value,'1950.00');
+assert.equal(camposEncargos.get('tarifaAdmMensalFin').value,'25.00');
+assert.ok(Number(camposEncargos.get('seguroMIPFin').value)>0);
+assert.ok(Number(camposEncargos.get('seguroDFIFin').value)>0);
+assert.match(camposEncargos.get('notaBaseEncargosFin').textContent,/teto público de avaliação/);
 assert.equal(camposEncargos.get('financiarEncargosFin').checked,false);
+assert.equal(camposEncargos.get('encargosAutomaticosFin').checked,true);
+camposEncargos.get('bancoFin').value='caixa';
+ctxEncargos.aplicarEncargosAutomaticosFinanciamento();
+assert.equal(camposEncargos.get('tarifaAvaliacaoFin').value,'1500.00');
+assert.match(camposEncargos.get('notaBaseEncargosFin').textContent,/PREMISSA GENÉRICA/);
+camposEncargos.get('encargosAutomaticosFin').checked=false;
+camposEncargos.get('tarifaAvaliacaoFin').value='2375.00';
+ctxEncargos.aplicarEncargosAutomaticosFinanciamento();
+assert.equal(camposEncargos.get('tarifaAvaliacaoFin').value,'2375.00','Modo manual deve preservar proposta do banco');
+camposEncargos.get('bancoFin').value='santander';
+camposEncargos.get('encargosAutomaticosFin').checked=true;
+camposEncargos.get('tipoImovelFin').value='comercial';
+ctxEncargos.alterarTipoImovelFin();
+assert.equal(camposEncargos.get('iofModoFin').value,'manual');
+assert.equal(camposEncargos.get('tarifaAvaliacaoFin').value,'3300.00');
 camposEncargos.get('produto').value='auto';
 ctxEncargos.prepararEncargosFinanciamento();
 assert.equal(camposEncargos.get('iofModoFin').value,'auto_pf');
+assert.equal(camposEncargos.get('tarifaAvaliacaoFin').value,'650.00');
+assert.equal(camposEncargos.get('tarifaCadastroFin').value,'850.00');
+assert.match(camposEncargos.get('notaBaseEncargosFin').textContent,/exemplo publicado pelo banco/);
+assert.equal(camposEncargos.get('seguroPrestamistaFin').value,'0');
 for(const id of ['valIOFFin','valTarifasFin','valSaldoFin','valInicialFin','valSegurosFin','valAdmFin','valTotalParcelasFin','blocoEncargosFinanciamento']){
  assert.ok(html.includes('id="'+id+'"'),'Campo de encargos ausente: '+id);
 }
@@ -278,7 +312,10 @@ const camposLink=new Map([
  ['iofModoFin',{value:'auto_pf',tagName:'SELECT',options:[{value:'isento'},{value:'auto_pf'},{value:'manual'}]}],
  ['seguroPrestamistaFin',{value:'100',type:'number'}],
  ['tarifaAvaliacaoFin',{value:'500',type:'number'}],
- ['financiarEncargosFin',{checked:true,type:'checkbox'}]
+ ['financiarEncargosFin',{checked:true,type:'checkbox'}],
+ ['encargosAutomaticosFin',{checked:true,type:'checkbox'}],
+ ['tipoImovelFin',{value:'sfh',tagName:'SELECT',options:[{value:'sfh'},{value:'sfi'},{value:'comercial'}]}],
+ ['notaBaseEncargosFin',{textContent:''}]
 ]);
 let calculosCompartilhamento=0;
 const localTeste={origin:'https://fernandoleal33.github.io',pathname:'/simuladorlotus/',search:''};
@@ -295,6 +332,7 @@ const ambienteCompartilhamento=vm.createContext({
  calcularIndice:()=>{},
  atualizarIndice:()=>{},
  atualizarVisibilidadeEncargosFinanciamento:()=>{},
+ aplicarEncargosAutomaticosFinanciamento:()=>{},
  validarConsultor:validarConsultorReal
 });
 vm.runInContext(html.slice(inicioLink,fimLink),ambienteCompartilhamento);
@@ -313,6 +351,8 @@ assert.equal(enderecoGerado.searchParams.get('s_iofModoFin'),'auto_pf');
 assert.equal(enderecoGerado.searchParams.get('s_seguroPrestamistaFin'),'100');
 assert.equal(enderecoGerado.searchParams.get('s_tarifaAvaliacaoFin'),'500');
 assert.equal(enderecoGerado.searchParams.get('s_financiarEncargosFin'),'1');
+assert.equal(enderecoGerado.searchParams.get('s_encargosAutomaticosFin'),'1');
+assert.equal(enderecoGerado.searchParams.get('s_tipoImovelFin'),'sfh');
 assert.equal(enderecoGerado.hash,'#simulador');
 assert.ok(!enderecoGerado.toString().includes('CPF'),'Não compartilhar documentos pessoais');
 assert.equal(calculosCompartilhamento,1);
@@ -338,6 +378,8 @@ assert.equal(camposLink.get('ajustarTaxaCenario').checked,true);
 assert.equal(camposLink.get('seguroPrestamistaFin').value,'100');
 assert.equal(camposLink.get('tarifaAvaliacaoFin').value,'500');
 assert.equal(camposLink.get('financiarEncargosFin').checked,true);
+assert.equal(camposLink.get('encargosAutomaticosFin').checked,true);
+assert.equal(camposLink.get('tipoImovelFin').value,'sfh');
 assert.equal(calculosCompartilhamento,3,'Recalcula cenário na abertura');
 camposLink.get('tipoLinkGerador').value='simulador';
 camposLink.get('nomeGerador').value='Outro Consultor';
