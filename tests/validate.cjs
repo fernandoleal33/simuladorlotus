@@ -22,7 +22,7 @@ function compararTrechosMatrizSoraia(inicio,fim){
  assert.equal(soraia.slice(b,eb),html.slice(a,ea),'Versões divergentes na seção financeira: '+inicio);
 }
 for(const [inicio,fim] of [
- ['const tabelaPlanos =','function preencherOpcoesTabela()'],
+ ['const tabelaPlanos={','function preencherOpcoesTabela()'],
  ['const taxasBancosImobiliario =','let taxaBaseSelecionada ='],
  ['const taxasBancosAuto =','// Instituições de referência por segmento.'],
  ['const linhasCreditoRural =','function alternarVitrine(indice)'],
