@@ -274,9 +274,10 @@
                     <div class="pt-2 border-t border-slate-700 space-y-3">
                         <h3 class="text-xs font-semibold text-red-400 uppercase">Parâmetros de Financiamento Bancário</h3>
                         <div id="blocoEntradaBanco">
-                            <label class="block text-xs font-medium text-slate-300 mb-1">Valor de Entrada Obrigatória no Banco (% do Bem)</label>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Valor de entrada (% do bem)</label>
                             <input type="number" id="entradaPct" value="20" min="0" max="80" step="5" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white">
-                            <p class="text-[10px] text-slate-400 mt-0.5" id="valEntradaText">Valor de Entrada: R$ 0,00 (Exigido pelo banco para aprovar)</p>
+                            <p class="text-[10px] text-slate-400 mt-0.5" id="valEntradaText">Entrada simulada: R$ 0,00</p>
+                            <p class="text-[10px] text-slate-400 mt-1">Percentual ilustrativo e editável. O valor efetivo da entrada depende da análise de crédito, renda e condições do banco.</p>
                         </div>
                         <div id="blocoBancoImovel">
                             <label class="block text-xs font-medium text-slate-300 mb-1">Banco / referência de taxa imobiliária</label>
@@ -291,19 +292,34 @@
                                 <option value="sicredi">Sicredi</option>
                                 <option value="manual">Personalizar taxa</option>
                             </select>
-                            <p class="text-[10px] text-slate-400 mt-1" id="notaBanco">Referência BCB: financiamento imobiliário PF, taxas reguladas pós-fixadas pela TR, setembro/2026. Não é proposta ou taxa garantida.</p>
+                            <p class="text-[10px] text-slate-400 mt-1" id="notaBanco">Referência BCB: financiamento imobiliário PF com taxas de mercado pós-fixadas em TR, outubro/2026. Parte fixa + TR, não é cotação nem CET.</p>
+                            <div id="blocoTipoImovelFin" class="mt-3">
+                                <label for="tipoImovelFin" class="block text-xs font-medium text-slate-300 mb-1">Finalidade do financiamento imobiliário</label>
+                                <select id="tipoImovelFin" onchange="alterarTipoImovelFin()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white">
+                                    <option value="sfh">Habitação — SFH (quando elegível)</option>
+                                    <option value="sfi">Habitação — SFI</option>
+                                    <option value="comercial">Aquisição de imóvel comercial (PF)</option>
+                                </select>
+                            </div>
                         </div>
                         <div id="blocoCreditoEmpresarial" style="display:none;" class="bg-slate-900/60 border border-slate-700 rounded-lg p-3 space-y-2">
                             <label class="block text-xs font-medium text-emerald-400">Modalidade de empréstimo para comparação</label>
                             <select id="modalidadeEmprestimo" onchange="atualizarEmprestimoEmpresarial()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white">
                                 <option value="home">Home Equity — garantia de imóvel</option>
                                 <option value="veiculo">Refinanciamento — garantia de veículo</option>
-                                <option value="rural">Crédito rural / agrário — 12,50% a.a.</option>
+                                <option value="rural">Crédito rural / agrário — escolher linha</option>
                                 <option value="pronampe">Pronampe — micro e pequenas empresas</option>
                             </select>
-                            <div id="seletorCreditoRural" style="display:none"><label class="block text-xs text-slate-300">Linha de crédito rural (Plano Safra 2026/2027)</label><select id="linhaCreditoRural" onchange="atualizarEmprestimoEmpresarial()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white"><option value="pronamp">Pronamp — custeio (9,00% a.a.)</option><option value="custeio">Custeio empresarial (12,50% a.a.)</option><option value="inovagro">Inovagro (11,50% a.a.)</option><option value="moderfrota">Moderfrota (12,50% a.a.)</option><option value="cooperativa">Prodecoop / Procap-Agro (12,00% a.a.)</option><option value="renovagro">RenovAgro Ambiental / Pastagens (8,50% a.a.)</option></select></div>
+                            <div id="blocoTomadorFin" style="display:none">
+                                <label for="perfilTomadorFin" class="block text-xs text-slate-300 mb-1">Tomador do crédito com garantia</label>
+                                <select id="perfilTomadorFin" onchange="alterarPerfilTomadorFin()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-white">
+                                    <option value="pf">Pessoa física — IOF estimado</option>
+                                    <option value="pj">Pessoa jurídica — IOF da proposta a confirmar</option>
+                                </select>
+                            </div>
+                            <div id="seletorCreditoRural" style="display:none"><label class="block text-xs text-slate-300">Linha de crédito rural (Plano Safra 2026/2027)</label><select id="linhaCreditoRural" onchange="atualizarEmprestimoEmpresarial()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white"><option value="pronamp">Pronamp — custeio (9,00% a.a.)</option><option value="custeio">Custeio empresarial (12,50% a.a.)</option><option value="inovagro">Inovagro (11,50% a.a.)</option><option value="moderfrota">Moderfrota (12,50% a.a.)</option><option value="moderfrotaPronamp">Moderfrota Pronamp (11,50% a.a.)</option><option value="cooperativa">Prodecoop / Procap-Agro (12,00% a.a.)</option><option value="renovagro">RenovAgro Ambiental / Pastagens (8,50% a.a.)</option></select></div>
                             <p id="notaEmprestimo" class="text-xs text-amber-200" role="status"></p>
-                            <p class="text-xs text-slate-400">Taxa anual efetiva editável abaixo. IOF, tarifas, indexadores, carência e CET devem ser conferidos na proposta; os cálculos atuais não incorporam esses custos.</p>
+                            <p class="text-xs text-slate-400">IOF e despesas estimados quando houver dados; confirme incidência e CET na proposta.</p>
                         </div>
                         <div id="blocoBancoAuto" style="display:none;">
                             <label class="block text-xs font-medium text-slate-300 mb-1">Banco / referência de taxa para automóveis</label>
@@ -313,15 +329,15 @@
                                 <option value="pan">Banco PAN</option>
                                 <option value="bv">BV</option>
                                 <option value="bradesco">Bradesco</option>
-                                <option value="safra">Banco Safra (taxa sob consulta)</option>
+                                <option value="safra">Banco Safra</option>
                                 <option value="manual">Personalizar taxa</option>
                             </select>
-                            <p id="notaBancoAuto" class="text-[10px] text-slate-400 mt-1">Taxas anuais ilustrativas e editáveis, não ofertas bancárias. Confirme a taxa efetiva e o CET da proposta.</p>
+                            <p id="notaBancoAuto" class="text-[10px] text-slate-400 mt-1">BCB: médias de aquisição de veículos PF de 28/10 a 04/11/2026. Não são propostas, taxas específicas de veículos de luxo ou CET.</p>
                         </div>
                         <div id="blocoBancoEspecial" style="display:none;">
                             <label class="block text-xs font-medium text-slate-300 mb-1">Instituição / linha de financiamento</label>
                             <select id="bancoEspecial" onchange="selecionarBancoEspecial()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white"></select>
-                            <p id="notaBancoEspecial" class="text-xs text-amber-200 mt-1" role="status">Taxa sob consulta; informe a taxa efetiva anual da proposta.</p>
+                            <p id="notaBancoEspecial" class="text-xs text-amber-200 mt-1" role="status">HIPÓTESE ILUSTRATIVA: sem taxa verificada do banco. Informe a taxa anual da proposta.</p>
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-slate-300 mb-1">Taxa efetiva anual do financiamento (%)</label>
@@ -330,6 +346,33 @@
                             <label class="flex items-start gap-2 text-xs text-slate-200 mt-3"><input type="checkbox" id="ajustarTaxaCenario" checked class="mt-0.5"> Ajustar taxa automaticamente por entrada e prazo (cenário ilustrativo, não cotação bancária)</label>
                             <p id="explicacaoTaxaCenario" class="text-xs text-amber-200 mt-2" role="status" aria-live="polite">Ajuste estimado. Confirme condições, elegibilidade e CET com o banco.</p>
                             <p class="text-[10px] text-slate-400 mt-1">Desmarque para informar uma taxa efetiva anual obtida em proposta real. Os ajustes não representam regras oficiais dos bancos.</p>
+                        </div>
+                        <!-- Cálculo automático interno de encargos; sem campos extras na interface. -->
+                        <div id="blocoEncargosFinanciamento" hidden aria-hidden="true" style="display:none">
+                            <input id="encargosAutomaticosFin" type="checkbox" checked>
+                            <span id="notaBaseEncargosFin"></span>
+                            <select id="iofModoFin">
+                                <option value="isento">Não incidente em crédito habitacional elegível</option>
+                                <option value="auto_pf">IOF PF tributável estimado</option>
+                                <option value="manual">IOF informado</option>
+                            </select>
+                            <div id="blocoIOFManualFin"><input id="iofManualFin" type="number" value="0"></div>
+                            <span id="notaIOFFin"></span>
+                            <div id="blocoSegurosHabitacionaisFin">
+                                <input id="seguroMIPFin" type="number" value="0">
+                                <input id="seguroDFIFin" type="number" value="0">
+                            </div>
+                            <div id="blocoSegurosVeiculoFin">
+                                <input id="seguroPrestamistaFin" type="number" value="0">
+                                <input id="seguroBemFin" type="number" value="0">
+                            </div>
+                            <input id="tarifaAvaliacaoFin" type="number" value="0">
+                            <input id="tarifaCadastroFin" type="number" value="0">
+                            <input id="registroFin" type="number" value="0">
+                            <input id="outrasTarifasFin" type="number" value="0">
+                            <input id="tarifaAdmMensalFin" type="number" value="0">
+                            <input id="financiarEncargosFin" type="checkbox">
+                            <span id="notaEncargosFin"></span>
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-slate-300 mb-1">Sistema de amortização</label>
@@ -371,7 +414,7 @@
                     <div class="flex flex-wrap gap-4 text-xs mb-3"><span class="text-emerald-400">━━ Consórcio</span><span class="text-rose-400">━━ Financiamento</span></div>
                     <svg id="graficoComparativo" viewBox="0 0 700 290" role="img" aria-label="Gráfico de linhas do desembolso acumulado por mês" style="display:block;width:100%;height:auto;max-height:350px"></svg>
                     <p id="graficoComparativoResumo" class="text-xs text-slate-300 mt-2"></p>
-                    <p class="text-xs text-slate-400 mt-2">Valores nominais ilustrativos, sem reajustes futuros, CET ou despesas bancárias adicionais. Contemplação e lances são hipóteses; curvas não representam saldo devedor nem rentabilidade.</p>
+                    <p class="text-xs text-slate-400 mt-2">Valores nominais ilustrativos, incluindo somente custos informados (IOF, seguros e tarifas). Não representam CET formal nem contemplação garantida; curvas não incluem reajustes futuros.</p>
                 </section>
                 <!-- Detailed Breakdown Box -->
                 <div class="bg-slate-800/60 border border-slate-700/60 p-5 rounded-2xl">
@@ -382,28 +425,39 @@
                             <div id="linhaValorAntecipacao" class="flex justify-between py-1 border-b border-slate-800" style="display:none"><span class="text-slate-400" id="labelValorAntecipacao">Valor da antecipação:</span><strong id="valValorAntecipacao" class="text-emerald-400">R$ 0</strong></div>
                             <div id="linhaParcelaComAntecipacao" class="flex justify-between py-1 border-b border-slate-800" style="display:none"><span class="text-slate-400" id="labelParcelaComAntecipacao">Parcela com antecipação:</span><strong id="valParcelaComAntecipacao" class="text-emerald-400">R$ 0</strong></div>
                             <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400" id="labelParcPre">Parcela antes da contemplação:</span><strong id="valParcRed">R$ 0</strong></div>
-                            <div id="linhaPrazoPosLance" class="flex justify-between py-1 border-b border-slate-800" style="display:none"><span class="text-slate-400">Prazo restante após o lance (estimativa):</span><strong id="valPrazoPosLance" class="text-emerald-400">—</strong></div>
+                            <div id="linhaPrazoPosLance" class="flex justify-between py-1 border-b border-slate-800" style="display:none"><span class="text-slate-400">Prazo após o lance (estimativa):</span><strong id="valPrazoPosLance" class="text-emerald-400">—</strong></div>
                             <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400" id="labelParcPos">Parcela após contemplação (hipótese):</span><strong id="valParcPos" class="text-emerald-400">R$ 0</strong></div>
                             <div id="linhaResumoPlano" class="py-2 text-xs text-slate-300 border-b border-slate-800"></div>
                             <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400">Lance com recurso próprio:</span> <strong id="valLanceProprio" class="text-white">R$ 0</strong></div>
                             <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400">Lance embutido:</span> <strong id="valLanceEmbutidoResumo" class="text-white">R$ 0</strong></div>
                             <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400">Crédito líquido disponível:</span> <strong id="valCreditoLiquido" class="text-white">R$ 0</strong></div>
-                            <div class="flex justify-between py-1 pt-1"><span class="text-slate-400">Desembolso estimado:</span> <strong id="valCustoConsorcio" class="text-white">R$ 0</strong></div>
+                            <div class="flex justify-between py-1 pt-1"><span class="text-slate-400">Custo total estimado:</span> <strong id="valCustoConsorcio" class="text-white">R$ 0</strong></div>
                         </div>
                         <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-2">
                             <p class="text-red-400 font-semibold text-xs uppercase mb-2" id="divSubTituloFin">Financiamento Bancário (Com Entrada)</p>
-                            <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400">Valor de Entrada Exigido:</span> <strong id="valEntradaFin">R$ 0</strong></div>
+                            <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400">Valor de Entrada:</span> <strong id="valEntradaFin">R$ 0</strong></div>
+                            <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400">Valor financiado:</span> <strong id="valSaldoFin">R$ 0</strong></div>
                             <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400">Parcela inicial:</span> <strong id="valParcBanco">R$ 0</strong></div>
-                            <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400">Última parcela (estimada):</span> <strong id="valUltParcBanco">R$ 0</strong></div>
-                            <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400">Total de juros:</span> <strong id="valJurosBanco" class="text-red-400">R$ 0</strong></div>
-                            <div class="py-2 border-b border-slate-800 text-xs text-amber-200 leading-relaxed">Os bancos possuem encargos e taxas. Consulte o seu banco para ter uma precisão melhor.</div>
-                            <div class="flex justify-between py-1 pt-1"><span class="text-slate-400">Custo Total (Entrada + Parcelas):</span> <strong id="valCustoBanco" class="text-white">R$ 0</strong></div>
+                            <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400">Última parcela:</span> <strong id="valUltParcBanco">R$ 0</strong></div>
+                            <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400">IOF:</span> <strong id="valIOFFin">R$ 0</strong></div>
+                            <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400">Seguros:</span> <strong id="valSegurosFin">R$ 0</strong></div>
+                            <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400">Tarifas e despesas:</span> <strong id="valTarifasFin">R$ 0</strong></div>
+                            <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400">Juros totais:</span> <strong id="valJurosBanco" class="text-red-400">R$ 0</strong></div>
+                            <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400">Total das parcelas:</span> <strong id="valTotalParcelasFin">R$ 0</strong></div>
+                            <div class="flex justify-between py-1 pt-1"><span class="text-slate-200 font-semibold">Desembolso total estimado:</span> <strong id="valCustoBanco" class="text-white">R$ 0</strong></div>
+                            <p class="text-[10px] text-slate-400">Valores estimados; “A confirmar” não integra o total. Não é o CET oficial.</p>
+                            <div hidden aria-hidden="true">
+                                <strong id="valPrincipalFin">R$ 0</strong>
+                                <strong id="valInicialFin">R$ 0</strong>
+                                <strong id="valAdmFin">R$ 0</strong>
+                            </div>
                         </div>
                     </div>
                     <div class="mt-4 bg-emerald-950/30 border border-emerald-800/50 p-4 rounded-xl text-xs text-emerald-300 leading-relaxed" id="textoDiferencas">
                         <strong>Resumo da Diferença:</strong> O comparativo demonstra a economia expressiva ao optar pelo consórcio em vez de financiar no banco.
                     </div>
                 </div>
+
 
                 <!-- Investment Yield Explanation Box -->
                 <div id="blocoExplicacaoInvestimento" class="bg-slate-800/60 border border-slate-700/60 p-5 rounded-2xl space-y-3" style="display:none;">
@@ -416,26 +470,39 @@
                     </p>
                 </div>
 
-                <!-- Action Buttons for WhatsApp & Testing -->
-                <div class="bg-slate-800/60 border border-slate-700/60 p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div>
-                        <h4 class="text-sm font-semibold text-white">Testar Envio via WhatsApp</h4>
-                        <p class="text-xs text-slate-400">Clique ao lado para abrir o WhatsApp com a proposta formatada pronta para o cliente.</p>
-                    </div>
-                    <div class="flex items-center gap-3 w-full sm:w-auto">
-                        <button onclick="copiarProposta()" class="w-full sm:w-auto bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2.5 rounded-xl text-xs transition">
-                            Copiar Texto
-                        </button>
-                        <button onclick="enviarWhatsApp()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-5 py-2.5 rounded-xl text-xs transition shadow-md shadow-emerald-950">
-                            <span id="telefoneBotao">Enviar no WhatsApp (11) 99929-7191</span>
-                        </button>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
 
+<section class="max-w-7xl mx-auto px-4 pb-8" id="compartilharSimulador">
+  <div class="bg-slate-800/60 border border-emerald-800/50 rounded-2xl p-5">
+    <h2 class="text-lg font-semibold text-white">Compartilhar SimuladorLotus</h2>
+    <p class="text-sm text-slate-300 my-3">Compartilhe o SimuladorLotus com os dados de atendimento da gerente Soraia Mello.</p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <label class="text-sm text-slate-200">Nome do consultor
+        <input id="nomeGerador" maxlength="70" autocomplete="name" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" value="Soraia Mello - Gerente" readonly>
+      </label>
+      <label class="text-sm text-slate-200">WhatsApp do consultor com DDD
+        <input id="telefoneGerador" type="tel" autocomplete="tel" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" value="(11) 99929-7191" readonly>
+      </label>
+    </div>
+    <label class="block text-sm text-slate-200 mt-4" for="tipoLinkGerador">O que deseja compartilhar?</label>
+    <select id="tipoLinkGerador" onchange="limparLinkCompartilhado()" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white">
+      <option value="simulacao">Simulação atual — com os valores que preenchi</option>
+      <option value="simulador">Simulador — para o cliente preencher do zero</option>
+    </select>
+    <p class="text-xs text-slate-400 mt-2">Para compartilhar valores específicos, configure primeiro a simulação acima. O link carrega os parâmetros e recalcula os resultados ao abrir; não é uma proposta aprovada. O cliente verá o WhatsApp informado acima como contato do consultor.</p>
+    <div class="flex flex-wrap gap-3 my-4">
+      <button type="button" onclick="gerarLinkCompartilhamento()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg">Gerar link</button>
+      <button type="button" onclick="copiarLinkCompartilhamento()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg">Copiar link</button>
+      <button type="button" onclick="enviarLinkCompartilhamentoWhatsApp()" class="border border-emerald-600 text-emerald-200 px-4 py-2 rounded-lg">Enviar pelo WhatsApp</button>
+    </div>
+    <input id="linkGerado" readonly aria-label="Link para compartilhar" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-slate-200 text-sm" placeholder="Clique em Gerar link">
+    <p id="avisoGerador" role="status" aria-live="polite" class="text-sm text-slate-300 mt-2">O link usa o nome e WhatsApp acima, inclusive quando você é o administrador.</p>
+  </div>
+</section>
     <script>
+
         const fmt = (v) => (Number.isFinite(v) ? v : 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         const num = (id, fallback=0) => {
             const el = document.getElementById(id);
@@ -471,18 +538,19 @@
             calcular();
         }
 
-        // Referências Banco Central: financiamento imobiliário PF, TAXAS DE MERCADO,
-        // pós-fixadas em TR, setembro/2026. Taxa fixa mais TR, sem CET, seguros e tarifas.
-        // Médias efetivamente contratadas, não cotações individuais nem taxas garantidas.
+        // BCB, modalidade 903201, financiamento imobiliário PF de mercado, taxa + TR.
+        // Outubro/2026: médias anuais por instituição, divulgadas em 18/11/2026.
+        // Sem variação futura da TR, seguros, tarifas ou CET.
+        // https://www.bcb.gov.br/estatisticas/reporttxjuros?codigoModalidade=903201&codigoSegmento=1
         const taxasBancosImobiliario = {
-            caixa: 12.05,
-            bradesco: 12.24,
-            santander: 12.31,
-            itau: 12.14,
-            bb: 14.49,
-            inter: 12.91,
-            sicoob: 10.79,
-            sicredi: 11.56
+            caixa: 11.97,
+            bradesco: 12.27,
+            santander: 12.32,
+            itau: 12.22,
+            bb: 14.42,
+            inter: 12.97,
+            sicoob: 10.93,
+            sicredi: 12.23
         };
         let taxaBaseSelecionada = null;
         // Modelo de sensibilidade hipotético: não representa precificação de qualquer instituição.
@@ -496,11 +564,11 @@
         function atualizarTaxaCenario() {
             const produto = document.getElementById('produto').value;
             const banco = produto === 'imovel' ? document.getElementById('bancoFin').value : (produto === 'auto' || produto === 'luxo') ? document.getElementById('bancoAuto').value : 'manual';
-            const ativo = document.getElementById('ajustarTaxaCenario').checked && banco !== 'manual' && banco !== 'safra' && (produto === 'imovel' || produto === 'auto' || produto === 'luxo');
+            const ativo = document.getElementById('ajustarTaxaCenario').checked && banco !== 'manual' && banco !== 'safra' && (produto === 'imovel' || produto === 'auto');
             const campo = document.getElementById('jurosBanco');
             const nota = document.getElementById('explicacaoTaxaCenario');
             if (!ativo) {
-                nota.textContent = 'Taxa informada manualmente ou produto sem modelo automático. Confirme taxa efetiva e CET.';
+                nota.textContent = produto==='luxo' ? 'Veículo de luxo: sem ajuste automático validado. Média PF geral ou taxa manual; confirme a proposta e CET.' : 'Taxa informada manualmente ou produto sem modelo automático. Confirme taxa efetiva e CET.';
                 return;
             }
             const entrada = Math.max(0, Math.min(100, num('entradaPct',0)));
@@ -524,38 +592,42 @@
                 campo.value = taxasBancosImobiliario[banco].toFixed(2);
                 taxaBaseSelecionada = taxasBancosImobiliario[banco];
                 campo.readOnly = false; // permite ajuste fino conforme perfil e proposta
-                nota.textContent = 'Referência BCB: setembro/2026, PF, imobiliário de mercado, taxa + TR. Média de operações, não oferta nem CET; seguros e tarifas não incluídos.';
+                nota.textContent = 'BCB, outubro/2026: financiamento imobiliário PF de mercado, modalidade 903201. Média anual por banco, parte fixa + TR; não inclui a TR futura, seguros, tarifas ou CET.';
             }
             atualizarTaxaCenario();
+            aplicarEncargosAutomaticosFinanciamento();
             calcular();
         }
-        // Aquisição de veículos PF: médias por banco da janela de 02/11/2026,
-        // taxas mensais convertidas para efetivas anuais. Não são ofertas nem CET.
+        // BCB, modalidade 401101, aquisição de veículos PF, prefixado.
+        // Operações 28/10 a 04/11/2026. Taxas ANUAIS do BCB, divulgadas em 18/11/2026.
+        // Evita distorções ao converter taxas mensais publicadas com arredondamento.
+        // https://www.bcb.gov.br/estatisticas/reporttxjuros?codigoModalidade=401101&codigoSegmento=1
         const taxasBancosAuto = {
-            santander: (Math.pow(1.0185, 12) - 1) * 100,
-            itau: (Math.pow(1.0194, 12) - 1) * 100,
-            pan: (Math.pow(1.0285, 12) - 1) * 100,
-            bv: (Math.pow(1.0211, 12) - 1) * 100,
-            bradesco: (Math.pow(1.0161, 12) - 1) * 100
+            santander: 24.36,
+            itau: 27.74,
+            pan: 41.85,
+            bv: 30.82,
+            bradesco: 22.17,
+            safra: 22.22
         };
         function selecionarBancoAuto() {
-            const banco = document.getElementById('bancoAuto').value;
-            const campo = document.getElementById('jurosBanco');
-            const nota = document.getElementById('notaBancoAuto');
-            if (banco === 'manual' || banco === 'safra') {
-                document.getElementById('ajustarTaxaCenario').checked = false;
-                if(banco === 'safra'){
-                    campo.value=(document.getElementById('produto').value==='luxo'?15.5:15.5).toFixed(2);
-                    nota.textContent='Banco Safra: 15,50% a.a. é apenas hipótese ilustrativa, NÃO é taxa média verificada do Safra nem oferta. Ajuste conforme proposta e confirme CET.';
-                }else{
-                    nota.textContent = 'Taxa personalizada. Confirme taxa efetiva anual e CET na proposta bancária.';
-                }
-            } else {
-                campo.value = taxasBancosAuto[banco].toFixed(2);
-                taxaBaseSelecionada = taxasBancosAuto[banco];
-                nota.textContent = 'Referência de aquisição de veículos PF, janela de 02/11/2026 (média contratada convertida em taxa anual). Não é oferta ou CET; valor editável.';
+            const banco=document.getElementById('bancoAuto').value;
+            const produto=document.getElementById('produto').value;
+            const campo=document.getElementById('jurosBanco');
+            const nota=document.getElementById('notaBancoAuto');
+            if(banco==='manual'){
+                document.getElementById('ajustarTaxaCenario').checked=false;
+                nota.textContent='Taxa personalizada: preencha a taxa efetiva de proposta real e confira o CET.';
+            }else{
+                campo.value=taxasBancosAuto[banco].toFixed(2);
+                taxaBaseSelecionada=taxasBancosAuto[banco];
+                if(produto==='luxo')document.getElementById('ajustarTaxaCenario').checked=false;
+                nota.textContent=produto==='luxo'
+                  ?'ATENÇÃO: referência BCB de veículos PF em geral (28/10 a 04/11/2026). NÃO representa taxa específica de veículos de luxo; confirme proposta e CET.'
+                  :'Média BCB de aquisição de veículos PF (28/10 a 04/11/2026, modalidade 401101). Taxa editável, não é cotação ou CET.';
             }
             atualizarTaxaCenario();
+            aplicarEncargosAutomaticosFinanciamento();
             calcular();
         }
         // Instituições de referência por segmento. Não atribuir taxas bancárias
@@ -571,17 +643,19 @@
             const nome=sel.options[sel.selectedIndex]?.textContent||'Instituição selecionada';
             document.getElementById('ajustarTaxaCenario').checked=false;
             const referencias={
-                pesados:{geral:16.10,finame:18.76,origem:'16,10% a.a. é cenário ilustrativo de pesados; 18,76% a.a. é referência FINAME divulgada para outubro/2026, não taxa contratada.'},
-                maquinario:{geral:18.76,finame:18.76,origem:'18,76% a.a. é referência ilustrativa FINAME divulgada para outubro/2026, não média específica do banco.'},
-                embarcacao:{geral:15.00,finame:15.00,origem:'15,00% a.a. é hipótese de simulação, sem média bancária específica verificada para embarcações.'}
+                pesados:{geral:16.10,finame:18.76,origem:'16,10% a.a. para pesados e 18,76% a.a. para FINAME são HIPÓTESES, não taxas verificadas do banco. FINAME combina componentes financeiros e custos do agente.'},
+                maquinario:{geral:18.76,finame:18.76,origem:'18,76% a.a. para maquinários/FINAME é HIPÓTESE de comparação, não média verificada para a instituição.'},
+                embarcacao:{geral:15.00,finame:15.00,origem:'15,00% a.a. para embarcações é HIPÓTESE de cenário, não média bancária verificada.'}
             };
             const ref=referencias[produto];
             const taxa=sel.value==='bb'&&produto!=='embarcacao'?ref.finame:ref.geral;
             document.getElementById('jurosBanco').value=taxa.toFixed(2);
             document.getElementById('notaBancoEspecial').textContent=
-                (sel.value==='manual'?'Referência inicial editável. ':nome+': referência de segmento, não cotação desta instituição. ')+
-                ref.origem+' Ajuste a taxa conforme proposta real; confirme CET, entrada, prazo, garantias e indexadores.';
+                'HIPÓTESE ILUSTRATIVA — NÃO é taxa verificada do banco. '+
+                (sel.value==='manual'?'Referência editável. ':nome+': sem cotação específica confirmada. ')+
+                ref.origem+' Informe a taxa da proposta efetiva anual; confira CET, entrada, garantias e indexadores.';
             atualizarTaxaCenario();
+            aplicarEncargosAutomaticosFinanciamento();
             calcular();
         }
         function atualizarBancoPorProduto(prod) {
@@ -609,22 +683,44 @@
                 seletor.value = 'manual';
                 }
         }
+        // Plano Safra 2026/2027: referências POR LINHA, não taxa uniforme por banco.
+        // Fonte MAPA e BNDES: dependerão de enquadramento, recursos, finalidade e agente.
+        // https://www.gov.br/agricultura/pt-br/assuntos/politica-agricola/plano-safra/2026-2027/credito-inovador
+        const linhasCreditoRural = {
+            pronamp:{taxa:9.00,nome:'Pronamp — custeio'},
+            custeio:{taxa:12.50,nome:'Custeio empresarial'},
+            inovagro:{taxa:11.50,nome:'Inovagro'},
+            moderfrota:{taxa:12.50,nome:'Moderfrota'},
+            moderfrotaPronamp:{taxa:11.50,nome:'Moderfrota Pronamp'},
+            cooperativa:{taxa:12.00,nome:'Prodecoop / Procap-Agro'},
+            renovagro:{taxa:8.50,nome:'RenovAgro Ambiental / Pastagens'}
+        };
         function atualizarEmprestimoEmpresarial(){
             if(document.getElementById('produto').value!=='capital_giro')return;
             const modo=document.getElementById('modalidadeEmprestimo').value;
             const campo=document.getElementById('jurosBanco');
             const nota=document.getElementById('notaEmprestimo');
-            document.getElementById('seletorCreditoRural').style.display='none';
+            const blocoRural=document.getElementById('seletorCreditoRural');
+            blocoRural.style.display=modo==='rural'?'block':'none';
+            document.getElementById('blocoTomadorFin').style.display=(modo==='home'||modo==='veiculo')?'block':'none';
             document.getElementById('ajustarTaxaCenario').checked=false;
-            const dados={
-                home:{taxa:18.16,nota:'Hipótese ilustrativa de 1,40% a.m. (18,16% a.a. efetivos), NÃO é taxa oficial ou cotação de Home Equity. Confirme CET, indexador e garantia.'},
-                veiculo:{taxa:23.87,nota:'Hipótese ilustrativa de 1,80% a.m. (23,87% a.a. efetivos), NÃO é taxa oficial ou cotação de refinanciamento de veículo. Confirme CET e garantia.'},
-                rural:{taxa:12.5,nota:'Crédito rural: referência de 12,50% ao ano para o cenário empresarial solicitado. Confirme finalidade, enquadramento, disponibilidade e CET na proposta.'},
-                pronampe:{taxa:19.75,nota:'Pronampe: simulação pelo TETO Selic meta de 13,75% + 6 p.p. = 19,75% a.a. (Selic conferida em 11/11/2026). Taxa variável; não é taxa fixa garantida ou CET. Atualize a referência após decisões do Copom. Prazo máximo: 72 meses.'}
-            };
-            campo.value=dados[modo].taxa.toFixed(2);
-            nota.textContent=dados[modo].nota;
+            if(modo==='rural'){
+                const campoLinha=document.getElementById('linhaCreditoRural');
+                const linha=linhasCreditoRural[campoLinha.value]||linhasCreditoRural.pronamp;
+                campo.value=linha.taxa.toFixed(2);
+                nota.textContent='Plano Safra 2026/2027 — '+linha.nome+': referência '+linha.taxa.toFixed(2).replace('.',',')+'% a.a. da LINHA, não cotação de banco. Depende de enquadramento, finalidade e disponibilidade. Carência, indexadores, seguros e CET devem ser confirmados na proposta.';
+            }else{
+                const dados={
+                    home:{taxa:18.16,nota:'HIPÓTESE ilustrativa: 1,40% a.m. (18,16% a.a. efetivos), NÃO é taxa média verificada para Home Equity. Confirmar garantia, indexadores, encargos e CET.'},
+                    veiculo:{taxa:23.87,nota:'HIPÓTESE ilustrativa: 1,80% a.m. (23,87% a.a. efetivos), NÃO é taxa média verificada para refinanciamento de veículos. Confirmar garantias e CET.'},
+                    pronampe:{taxa:19.75,nota:'Pronampe: TETO de referência Selic 13,75% (Copom 04/11/2026) + 6 p.p. = 19,75% a.a. Pode variar; não é oferta nem CET. Verifique as condições e o prazo máximo de 72 meses.'}
+                };
+                const referencia=dados[modo]||dados.home;
+                campo.value=referencia.taxa.toFixed(2);
+                nota.textContent=referencia.nota;
+            }
             if(modo==='pronampe'&&Number(document.getElementById('prazoFin').value)>72)document.getElementById('prazoFin').value=72;
+            sincronizarIOFConformeFinalidade();
             calcular();
         }
         function alternarVitrine(indice) {
@@ -670,6 +766,16 @@
             // Atualizar o menu imediatamente, antes de qualquer cálculo ou chamada externa.
             preencherOpcoesTabela();
             const p = presets[prod] || presets.imovel;
+            const avisosPorProduto={
+                moto:'Taxa inicial de motos é HIPÓTESE de simulação, não média verificada específica de banco. Confira a proposta e CET.',
+                luxo:'Bancos exibem médias de veículos PF em geral; NÃO são taxas validadas para veículos de luxo. Confirme proposta e CET.',
+                pesados:'Taxa inicial de pesados é HIPÓTESE ilustrativa, não média bancária específica verificada. Confirme CET, condições e garantias.',
+                maquinario:'Taxa inicial de maquinários é HIPÓTESE ilustrativa, não média bancária verificada. Em FINAME, confira remuneração do agente.',
+                embarcacao:'Taxa inicial náutica é HIPÓTESE ilustrativa, não média bancária verificada. Confirme proposta e CET.',
+                servicos:'Taxa inicial de serviços/eletrônicos é HIPÓTESE ilustrativa, não referência bancária verificada para essa modalidade.',
+                capital_giro:'Selecione a modalidade. Taxas de empréstimos com garantia são hipóteses; taxas rurais dependem da linha e do enquadramento.'
+            };
+            document.getElementById('txtTipoFinanciamento').textContent=avisosPorProduto[prod]||'Taxa editável. As médias de referência não são CET e podem excluir indexadores, seguros, tarifas e demais encargos.';
             document.getElementById('prazoConsorcio').value=p.pc;
             document.getElementById('prazoFin').value=p.pf;
             document.getElementById('credito').value=p.credito;
@@ -680,6 +786,7 @@
             document.getElementById('entradaPct').value=prod==='capital_giro'?0:p.entrada;
             document.getElementById('blocoEntradaBanco').style.display=prod==='capital_giro'?'none':'block';
             atualizarBancoPorProduto(prod);
+            prepararEncargosFinanciamento();
             atualizarTaxaCenario();
             document.getElementById('painelIndices').style.display=prod==='investimento'?'block':'none';
             document.getElementById('tabelaUnifisa').style.display=['imovel','auto','moto','pesados','maquinario','luxo','embarcacao','capital_giro'].includes(prod)?'block':'none';
@@ -702,6 +809,178 @@
             document.getElementById('blocoExplicacaoInvestimento').style.display='none';
             atualizarOpcoesReduzida();
             calcular();
+        }
+        // Encargos informados para comparação ilustrativa. Não são tarifas oficiais por banco.
+        // O IOF de crédito PF tributável usa 0,38% adicional e 0,0082% ao dia
+        // sobre a amortização de principal, limitada a 365 dias por parcela.
+        // Vencimentos estimados a cada 30 dias; o IOF efetivo depende do calendário/contrato.
+        // Decreto 6.306/2007, art. 7º: https://www.planalto.gov.br/ccivil_03/_ato2007-2010/2007/decreto/d6306.htm
+        const CAMPOS_ENCARGOS_FIN=['iofManualFin','seguroMIPFin','seguroDFIFin','seguroPrestamistaFin',
+            'seguroBemFin','tarifaAvaliacaoFin','tarifaCadastroFin','registroFin','outrasTarifasFin','tarifaAdmMensalFin'];
+        // Referências publicamente verificadas + cenários EXPRESSAMENTE ilustrativos.
+        // Em nenhum caso o banco publica, para todos os clientes, um pacote fixo de MIP/DFI,
+        // tarifas, cartório e seguro. Dados do contrato sempre prevalecem.
+        // Santander imóveis residenciais: até R$ 1.950 para avaliação, R$ 25/mês em SFH:
+        // https://www.santander.com.br/emprestimos/credito/imobiliario
+        // https://www.santander.com.br/blog/para-voce/sfh/
+        // Santander comercial: até R$ 3.300 para avaliação.
+        // PAN: exemplo ILUSTRATIVO de avaliação de R$ 650 e cadastro de R$ 850,
+        // quando aplicável. NÃO é tarifa obrigatória ou valor da proposta:
+        // https://www.bancopan.com.br/produtos/financiamento-de-veiculos/
+        const REFERENCIAS_DESPESAS_POR_BANCO={
+            imovel:{
+                santander:{avaliacaoResidencial:1950,avaliacaoComercial:3300,fonte:'Santander: teto público de avaliação de imóvel residencial R$ 1.950 e comercial R$ 3.300; a tarifa efetiva pode ser menor.'}
+            },
+            auto:{
+                pan:{avaliacao:650,cadastro:850,fonte:'PAN: valores retirados de exemplo publicado pelo banco (R$ 650 avaliação; R$ 850 cadastro quando aplicável); não são cotação nem obrigação universal.'}
+            }
+        };
+        const arredondarCustoFin=v=>Math.round(Math.max(0,v)*100)/100;
+        function aplicarEncargosAutomaticosFinanciamento(){
+            const doc=document,porId=id=>doc.getElementById(id);
+            const produto=porId('produto').value,ativo=porId('encargosAutomaticosFin').checked;
+            if(!ativo){
+                porId('notaBaseEncargosFin').textContent='Modo manual: valores mantidos conforme preenchimento. Confira custos e seguros não informados; zero não significa isenção.';
+                return;
+            }
+            const banco=produto==='imovel'?porId('bancoFin').value:
+                ['auto','luxo'].includes(produto)?porId('bancoAuto').value:
+                ['pesados','maquinario','embarcacao'].includes(produto)?porId('bancoEspecial').value:'manual';
+            const credito=Math.max(0,parseMoeda(porId('credito').value));
+            const entrada=Math.max(0,Math.min(100,num('entradaPct',0)));
+            const principal=Math.max(0,credito*(1-entrada/100));
+            for(const id of CAMPOS_ENCARGOS_FIN)porId(id).value='0';
+            let explicacao='';
+            if(produto==='imovel'){
+                const tipo=porId('tipoImovelFin').value;
+                const perfil=REFERENCIAS_DESPESAS_POR_BANCO.imovel[banco];
+                const avaliacao=perfil?(tipo==='comercial'?perfil.avaliacaoComercial:perfil.avaliacaoResidencial):1500;
+                porId('tarifaAvaliacaoFin').value=arredondarCustoFin(avaliacao).toFixed(2);
+                // Hipóteses para visualização, NÃO coeficientes divulgados por banco ou seguradora.
+                // Prêmios efetivos dependem da idade, composição da renda, apólice e avaliação.
+                if(tipo!=='comercial'){
+                    porId('seguroMIPFin').value=arredondarCustoFin(principal*0.00020).toFixed(2);
+                    porId('seguroDFIFin').value=arredondarCustoFin(credito*0.00006).toFixed(2);
+                }
+                if(tipo==='sfh')porId('tarifaAdmMensalFin').value='25.00';
+                explicacao=(perfil?perfil.fonte:'Avaliação de R$ 1.500 é PREMISSA GENÉRICA para planejamento, NÃO tarifa publicada do banco selecionado.')+
+                    (tipo==='comercial'
+                      ?' Uso comercial: não foram adicionados MIP/DFI habitacionais, pois seguros da operação exigem proposta específica. Taxa bancária PF de habitação não representa cotação comercial.'
+                      :' MIP de 0,020% ao mês sobre o crédito financiado e DFI de 0,006% ao mês sobre o valor do bem são HIPÓTESES genéricas, não preços de apólice; variam com idade, saldo, risco e seguradora.')+
+                    (tipo==='sfh'?' Administração de R$ 25/mês é uma premissa SFH baseada em referências públicas; confirme se incide no contrato.':' Tarifa administrativa mensal não estimada para esta modalidade.');
+            }else if(['auto','luxo','moto'].includes(produto)){
+                const perfil=REFERENCIAS_DESPESAS_POR_BANCO.auto[banco];
+                porId('tarifaAvaliacaoFin').value=perfil?String(perfil.avaliacao.toFixed(2)):'650.00';
+                if(perfil)porId('tarifaCadastroFin').value=perfil.cadastro.toFixed(2);
+                explicacao=(perfil?perfil.fonte:'Avaliação de R$ 650 é PREMISSA GENÉRICA, não tarifa publicada para este banco. Cadastro/registro dependem do contrato e do relacionamento; zero é valor não identificado, não isenção.')+
+                    ' Seguros prestamista e do veículo não foram adicionados automaticamente por serem opcionais na operação usual e dependerem de aceitação e cotação; inclua-os se contratados.';
+            }else{
+                explicacao='Não existe tabela pública comparável de tarifas e seguros para todas as operações desta categoria. Auto preenchimento limitado: confirme o valor de cada custo na proposta; R$ 0 indica pendência, NÃO isenção.';
+            }
+            explicacao+=' Despesas de cartório/registro e tributos sobre transmissão (quando cabíveis) continuam sob consulta, pois variam conforme localidade e operação. Estes totais são PARCIAIS até a confirmação.';
+            porId('notaBaseEncargosFin').textContent='Banco: '+(banco||'personalizado')+'. '+explicacao;
+        }
+        function alterarEncargosAutomaticosFin(){
+            aplicarEncargosAutomaticosFinanciamento();
+            atualizarVisibilidadeEncargosFinanciamento();
+            calcular();
+        }
+        // A incidência depende da finalidade do CRÉDITO, não da garantia.
+        // Decreto 6.306/2007: art. 9, I (finalidade habitacional) e art. 7, VII
+        // (aquisição de imóvel não residencial por pessoa física).
+        // Home Equity PF é crédito com garantia, sem isenção habitacional automática.
+        // Nas simulações empresariais PJ, o IOF só é confirmado por proposta.
+        // https://www2.camara.leg.br/legin/fed/decret/2007/decreto-6306-14-dezembro-2007-566561-normaatualizada-pe.html
+        function modoIOFConformeFinalidade(){
+            const prod=document.getElementById('produto').value;
+            if(prod==='imovel'){
+                return document.getElementById('tipoImovelFin').value==='comercial'?'auto_pf':'isento';
+            }
+            if(prod==='capital_giro'){
+                const modalidade=document.getElementById('modalidadeEmprestimo').value;
+                if(modalidade==='home'||modalidade==='veiculo'){
+                    return document.getElementById('perfilTomadorFin').value==='pf'?'auto_pf':'manual';
+                }
+                return 'manual';
+            }
+            return ['auto','moto','luxo'].includes(prod)?'auto_pf':'manual';
+        }
+        function sincronizarIOFConformeFinalidade(){
+            const modo=modoIOFConformeFinalidade();
+            document.getElementById('iofModoFin').value=modo;
+            atualizarVisibilidadeEncargosFinanciamento();
+        }
+        function alterarPerfilTomadorFin(){
+            sincronizarIOFConformeFinalidade();
+            calcular();
+        }
+        function alterarTipoImovelFin(){
+            sincronizarIOFConformeFinalidade();
+            aplicarEncargosAutomaticosFinanciamento();
+            atualizarVisibilidadeEncargosFinanciamento();
+            calcular();
+        }
+        function prepararEncargosFinanciamento(){
+            const produto=document.getElementById('produto').value;
+            document.getElementById('tipoImovelFin').value='sfh';
+            document.getElementById('perfilTomadorFin').value='pf';
+            document.getElementById('encargosAutomaticosFin').checked=true;
+            sincronizarIOFConformeFinalidade();
+            document.getElementById('financiarEncargosFin').checked=false;
+            aplicarEncargosAutomaticosFinanciamento();
+            atualizarVisibilidadeEncargosFinanciamento();
+        }
+        function atualizarVisibilidadeEncargosFinanciamento(){
+            const produto=document.getElementById('produto').value;
+            const imovel=produto==='imovel';
+            const modo=document.getElementById('iofModoFin').value;
+            document.getElementById('blocoTipoImovelFin').style.display=imovel?'block':'none';
+            document.getElementById('blocoSegurosHabitacionaisFin').style.display=imovel?'grid':'none';
+            document.getElementById('blocoSegurosVeiculoFin').style.display=imovel?'none':'grid';
+            document.getElementById('blocoIOFManualFin').style.display=modo==='manual'?'block':'none';
+            const nota=document.getElementById('notaIOFFin');
+            if(modo==='isento'){
+                nota.textContent=imovel?'Crédito para fins habitacionais enquadrados é isento de IOF SOBRE O CRÉDITO. Esta isenção não elimina MIP, DFI, avaliação, registro ou tarifas aplicáveis. Confira o enquadramento.'
+                  :'IOF zero selecionado manualmente. Verifique se a operação realmente é isenta ou não sujeita ao imposto.';
+            }else if(modo==='auto_pf'){
+                nota.textContent='Estimativa para crédito PF tributável: 0,38% adicional + 0,0082% ao dia sobre amortizações de principal (máximo 365 dias por parcela; mês médio de 30 dias). Não é valor oficial da proposta; não usar para crédito PJ.';
+            }else{
+                nota.textContent='IOF informado pelo usuário. Utilize o valor discriminado na proposta; confirme incidência, base de cálculo e condições tributárias.';
+            }
+        }
+        function alterarModoIOFFin(){atualizarVisibilidadeEncargosFinanciamento();calcular();}
+        function calcularIOFEstimadoPessoaFisica(principal,taxaAnualPct,meses,sistema){
+            principal=Math.max(0,principal);
+            meses=Math.max(1,Math.floor(meses));
+            if(principal<=0)return 0;
+            const taxaMensal=Math.pow(1+Math.max(0,taxaAnualPct)/100,1/12)-1;
+            const parcelaPrice=taxaMensal===0?principal/meses:
+                principal*taxaMensal/(1-Math.pow(1+taxaMensal,-meses));
+            let saldo=principal,total=principal*0.0038;
+            for(let m=1;m<=meses;m++){
+                const amort=sistema==='sac'?principal/meses:Math.max(0,parcelaPrice-saldo*taxaMensal);
+                const parcelaPrincipal=m===meses?saldo:Math.min(saldo,amort);
+                total+=parcelaPrincipal*0.000082*Math.min(365,m*30);
+                saldo=Math.max(0,saldo-parcelaPrincipal);
+            }
+            return Math.round(total*100)/100;
+        }
+        function calcularEncargosFinanciamento(produto,principal,jurosAA,prazoFin,sistema){
+            const moeda=id=>Math.max(0,num(id,0));
+            const iofModo=document.getElementById('iofModoFin').value;
+            const iof=iofModo==='auto_pf'?calcularIOFEstimadoPessoaFisica(principal,jurosAA,prazoFin,sistema):
+                iofModo==='manual'?moeda('iofManualFin'):0;
+            const tarifas=moeda('tarifaAvaliacaoFin')+moeda('tarifaCadastroFin')+
+                moeda('registroFin')+moeda('outrasTarifasFin');
+            const seguroMensal=produto==='imovel'?(moeda('seguroMIPFin')+moeda('seguroDFIFin')):
+                (moeda('seguroPrestamistaFin')+moeda('seguroBemFin'));
+            const administracaoMensal=moeda('tarifaAdmMensalFin');
+            const custosIniciais=iof+tarifas;
+            const financiar=principal>0&&document.getElementById('financiarEncargosFin').checked;
+            return {iof,tarifas,seguroMensal,administracaoMensal,custosIniciais,
+                totalSeguros:seguroMensal*prazoFin,totalAdministracao:administracaoMensal*prazoFin,
+                pagoAVista:financiar?0:custosIniciais,saldoFinanciado:principal+(financiar?custosIniciais:0),
+                encargosMensais:seguroMensal+administracaoMensal,financiar};
         }
         function calcularFinanciamento(principal, taxaAnualPct, meses, sistema, trMensalPct=0) {
             if (principal <= 0 || meses <= 0) return { primeira:0, ultima:0, juros:0, total:0 };
@@ -728,13 +1007,13 @@
             }
             return { primeira, ultima, juros:Math.max(0,total-principal), total };
         }
-        function desenharGraficoComparativo(cons,fin,prazoCons,prazoFin,entrada,mesCont,parcelaAntes,adicionalInicial,mesesAntecipados,parcelaDepois,lanceProprio,sistema,principal,jurosAnual) {
+        function desenharGraficoComparativo(cons,fin,prazoCons,prazoFin,entrada,mesCont,parcelaAntes,adicionalInicial,mesesAntecipados,parcelaDepois,lanceProprio,sistema,principal,jurosAnual,despesasIniciaisAVista=0,adicionalMensal=0) {
             const svg=document.getElementById('graficoComparativo');
             if(!svg)return;
             const NS='http://www.w3.org/2000/svg',W=700,H=290,L=76,R=18,T=15,B=43;
             const maxMes=Math.max(prazoCons,prazoFin,1),a=Math.pow(1+jurosAnual/100,1/12)-1;
-            const serieCons=[0],serieFin=[entrada];
-            let saldo=principal,acumuladoCons=0,acumuladoFin=entrada;
+            const serieCons=[0],serieFin=[entrada+despesasIniciaisAVista];
+            let saldo=principal,acumuladoCons=0,acumuladoFin=entrada+despesasIniciaisAVista;
             for(let m=1;m<=maxMes;m++){
                 if(m<=prazoCons){
                     const parcela=m<=mesCont?parcelaAntes+(m<=mesesAntecipados?adicionalInicial:0):parcelaDepois;
@@ -742,7 +1021,7 @@
                     if(m===mesCont)acumuladoCons+=Math.max(0,lanceProprio);
                     acumuladoCons=Math.min(cons,acumuladoCons);
                 }
-                if(m<=prazoFin&&principal>0){
+                if(m<=prazoFin&&(principal>0||adicionalMensal>0)){
                     let parcela=0;
                     if(sistema==='sac'){
                         const amort=saldo/(prazoFin-m+1);
@@ -751,7 +1030,7 @@
                     }else{
                         parcela=a===0?principal/prazoFin:principal*a/(1-Math.pow(1+a,-prazoFin));
                     }
-                    acumuladoFin+=parcela;
+                    acumuladoFin+=parcela+adicionalMensal;
                 }
                 serieCons.push(m>=prazoCons?cons:acumuladoCons);
                 serieFin.push(m>=prazoFin?fin:acumuladoFin);
@@ -847,18 +1126,32 @@
             const principalFin=Math.max(0,credito-valorEntrada);
             const jurosAA=Math.max(0,num('jurosBanco',0));
             const sistema=document.getElementById('sistemaFin').value;
-            const fin=calcularFinanciamento(principalFin,jurosAA,prazoFin,sistema,0);
-            const encargosAdicionaisFin=0; // Despesas bancárias não estimadas nem incluídas.
-            const custoFin=valorEntrada+fin.total+encargosAdicionaisFin;
+            const custosFin=calcularEncargosFinanciamento(produto,principalFin,jurosAA,prazoFin,sistema);
+            const fin=calcularFinanciamento(custosFin.saldoFinanciado,jurosAA,prazoFin,sistema,0);
+            const totalParcelasFin=fin.total+custosFin.totalSeguros+custosFin.totalAdministracao;
+            const custoFin=valorEntrada+custosFin.pagoAVista+totalParcelasFin;
             const diferenca=custoFin-desembolsoCons;
             const fmtPct=(v)=>`${v.toLocaleString('pt-BR',{maximumFractionDigits:2})}%`;
             document.getElementById('valLanceEmbutidoText').textContent=`Valor estimado do lance embutido: ${fmt(lanceEmbutido)} | Crédito líquido: ${fmt(creditoLiquido)}`;
             document.getElementById('valEntradaText').textContent=`Entrada estimada: ${fmt(valorEntrada)} (${fmtPct(valorEntradaPct)})`;
             document.getElementById('valEntradaFin').textContent=`${fmt(valorEntrada)} (${fmtPct(valorEntradaPct)})`;
-            document.getElementById('valParcBanco').textContent=fmt(fin.primeira);
-            document.getElementById('valUltParcBanco').textContent=fmt(fin.ultima);
+            document.getElementById('valPrincipalFin').textContent=fmt(principalFin);
+            const iofPendente=principalFin>0&&document.getElementById('iofModoFin').value==='manual'&&num('iofManualFin',0)<=0;
+            document.getElementById('valIOFFin').textContent=iofPendente?'A confirmar':fmt(custosFin.iof);
+            document.getElementById('valTarifasFin').textContent=fmt(custosFin.tarifas+custosFin.totalAdministracao);
+            document.getElementById('valSaldoFin').textContent=fmt(custosFin.saldoFinanciado);
+            document.getElementById('valInicialFin').textContent=fmt(valorEntrada+custosFin.pagoAVista);
+            document.getElementById('valParcBanco').textContent=fmt(fin.primeira+custosFin.encargosMensais);
+            document.getElementById('valUltParcBanco').textContent=fmt(fin.ultima+custosFin.encargosMensais);
             document.getElementById('valJurosBanco').textContent=fmt(fin.juros);
+            document.getElementById('valSegurosFin').textContent=fmt(custosFin.totalSeguros);
+            document.getElementById('valAdmFin').textContent=fmt(custosFin.totalAdministracao);
+            document.getElementById('valTotalParcelasFin').textContent=fmt(totalParcelasFin);
             document.getElementById('valCustoBanco').textContent=fmt(custoFin);
+            document.getElementById('notaEncargosFin').textContent=
+                (iofPendente?'IOF pendente de proposta: desembolso total é parcial. ':'')+
+                (custosFin.financiar?'IOF e despesas iniciais incorporados ao saldo e sujeitos a juros. ':'IOF e despesas iniciais pagos à vista. ')+
+                'Seguros e tarifas mensais supostos constantes; cálculo não constitui CET bancário. Consulte o contrato para valores e incidência.';
             document.getElementById('labelParcPos').textContent=modoAbate==='parcela'
               ? 'Parcela após contemplação — redução de parcela (hipótese):'
               : 'Parcela após contemplação — parcela mantida, prazo reduzido (hipótese):';
@@ -875,20 +1168,20 @@
               ? 'Antecipação total (diluída em '+mesesTaxaAntecipada+' parcelas):'
               : 'Valor da antecipação na 1ª parcela:';
             document.getElementById('linhaParcelaComAntecipacao').style.display=mesesTaxaAntecipada>1?'flex':'none';
-            document.getElementById('labelParcelaComAntecipacao').textContent='Parcela nos primeiros '+mesesTaxaAntecipada+' meses (com antecipação):';
+            document.getElementById('labelParcelaComAntecipacao').textContent='Parcela total nos primeiros '+mesesTaxaAntecipada+' meses (inclui antecipação):';
             document.getElementById('valParcelaComAntecipacao').textContent=fmt(parcelaPre);
             document.getElementById('labelParcPre').textContent=mesesTaxaAntecipada>1
-              ? 'Parcela a partir do '+(mesesTaxaAntecipada+1)+'º mês (antes da contemplação):'
-              : (ativarRed?'Parcela reduzida antes da contemplação (sem adicional de antecipação):':'Parcela antes da contemplação (sem adicional de antecipação):');
+              ? 'Parcela mensal sem antecipação (a partir do '+(mesesTaxaAntecipada+1)+'º mês):'
+              : (ativarRed?'Parcela mensal reduzida:':'Parcela mensal:');
             document.getElementById('valParcRed').textContent=fmt(parcelaReduzida);
             document.getElementById('valParcPos').textContent=fmt(parcelaPos);
             document.getElementById('linhaPrazoPosLance').style.display=modoAbate==='prazo'?'flex':'none';
-            document.getElementById('valPrazoPosLance').textContent=prazoRestante+' mês(es) restantes (redução de '+reducaoMeses+' mês(es))';
+            document.getElementById('valPrazoPosLance').textContent=prazoRestante+' mês(es) (redução de '+reducaoMeses+' mês(es))';
             document.getElementById('valLanceProprio').textContent=fmt(lanceProprioAplicado);
             document.getElementById('valLanceEmbutidoResumo').textContent=fmt(embutidoAplicado);
             document.getElementById('valCreditoLiquido').textContent=fmt(creditoLiquido);
             document.getElementById('valCustoConsorcio').textContent=fmt(desembolsoCons);
-            if(prazoPlanoValido&&credito>0)desenharGraficoComparativo(desembolsoCons,custoFin,prazoCons,prazoFin,valorEntrada,mesCont,parcelaReduzida,adicionalInicial,mesesTaxaAntecipada,parcelaPos,lanceProprioAplicado,sistema,principalFin,jurosAA);
+            if(prazoPlanoValido&&credito>0)desenharGraficoComparativo(desembolsoCons,custoFin,prazoCons,prazoFin,valorEntrada,mesCont,parcelaReduzida,adicionalInicial,mesesTaxaAntecipada,parcelaPos,lanceProprioAplicado,sistema,custosFin.saldoFinanciado,jurosAA,custosFin.pagoAVista,custosFin.encargosMensais);
             else {document.getElementById('graficoComparativo').replaceChildren();document.getElementById('graficoComparativoResumo').textContent='Ajuste o crédito ou prazo para exibir a comparação.';}
             
             document.getElementById('divSubTituloFin').textContent=produto==='capital_giro'?`Empréstimo empresarial (${sistema.toUpperCase()})`:`Financiamento (${sistema.toUpperCase()})`;
@@ -921,32 +1214,15 @@
               `• Antes da contemplação: ${mesesAntes} mês(es); parcelas calculadas por fase, com total pago de ${fmt(pagoAntes)}. Lance próprio aplicado: ${fmt(lanceProprioAplicado)}; lance embutido aplicado: ${fmt(embutidoAplicado)}.<br>`+
               `• ${reducaoText}<br>`+
               `• Desembolso estimado no consórcio (parcelas + lance com recursos próprios): <strong>${fmt(desembolsoCons)}</strong>.<br>`+
-              `• Financiamento ${sistema.toUpperCase()}: entrada ${fmt(valorEntrada)} + parcelas ${fmt(fin.total)}; juros estimados ${fmt(fin.juros)}; desembolso total ${fmt(custoFin)}.<br>`+
+              `• Financiamento ${sistema.toUpperCase()}: entrada ${fmt(valorEntrada)}, saldo financiado ${fmt(custosFin.saldoFinanciado)}, parcelas ${fmt(totalParcelasFin)} e desembolso total ${fmt(custoFin)}. Os encargos estão no quadro do financiamento.<br>`+
               `• Diferença nominal: <strong>${diffText}</strong> (${diffLabel}). Essa comparação não representa equivalência perfeita de prazo, disponibilidade imediata ou poder de compra.`+
               (aviso.length?`<br><br><strong>Atenção:</strong><br>• ${aviso.join('<br>• ')}`:'');
             document.getElementById('textoDiferencas').innerHTML=resumo;
             // Mantém a área antiga de investimento oculta: projeções de valorização/aluguel não são retorno garantido.
             document.getElementById('blocoExplicacaoInvestimento').style.display='none';
             const bancoSelecionado = produto === 'imovel' ? document.getElementById('bancoFin').selectedOptions[0].text : produto === 'auto' ? document.getElementById('bancoAuto').selectedOptions[0].text : 'Taxa personalizada';
-            window.__simulacaoAtual={taxaEstimada:document.getElementById('ajustarTaxaCenario').checked && (produto==='imovel' || produto==='auto') && bancoSelecionado!=='Personalizar taxa',produto:produtoEl.options[produtoEl.selectedIndex].text,credito,prazoCons,prazoFin,mesCont,parcelaPre,parcelaPos,lanceLivre:lanceProprioAplicado,lanceEmbutido:embutidoAplicado,creditoLiquido,desembolsoCons,custoFin,diferenca,juros:fin.juros,entrada:valorEntrada,sistema,banco:bancoSelecionado,taxaAnual:jurosAA};
+            window.__simulacaoAtual={taxaEstimada:document.getElementById('ajustarTaxaCenario').checked && (produto==='imovel' || produto==='auto') && bancoSelecionado!=='Personalizar taxa',produto:produtoEl.options[produtoEl.selectedIndex].text,credito,prazoCons,prazoFin,mesCont,parcelaPre,parcelaPos,lanceLivre:lanceProprioAplicado,lanceEmbutido:embutidoAplicado,creditoLiquido,desembolsoCons,custoFin,diferenca,juros:fin.juros,entrada:valorEntrada,sistema,banco:bancoSelecionado,taxaAnual:jurosAA,iof:custosFin.iof,tarifas:custosFin.tarifas,seguros:custosFin.totalSeguros,administracao:custosFin.totalAdministracao,saldoFinanciado:custosFin.saldoFinanciado};
         }
-        function textoProposta() {
-            if(document.getElementById('produto').value==='investimento')return window.propostaIndice||'Calcule a projeção patrimonial antes de compartilhar.';
-            const s=window.__simulacaoAtual;
-            if (!s) return 'Faça uma simulação antes de compartilhar.';
-            return `📊 *Simulação ilustrativa — Consórcio x Financiamento*\nConsultor: ${consultorAtual.nome}\n\n• Segmento: ${s.produto}\n• Crédito de referência: ${fmt(s.credito)}\n• Crédito líquido no consórcio após lance embutido: ${fmt(s.creditoLiquido)}\n• Contemplação considerada apenas como hipótese: mês ${s.mesCont}\n• Parcela pré-contemplação: ${fmt(s.parcelaPre)}\n• Parcela pós-contemplação estimada: ${fmt(s.parcelaPos)}\n• Lance próprio aplicado: ${fmt(s.lanceLivre)}\n• Lance embutido aplicado: ${fmt(s.lanceEmbutido)}\n• Desembolso estimado no consórcio: ${fmt(s.desembolsoCons)}\n• Entrada no financiamento: ${fmt(s.entrada)}\n• Banco / referência: ${s.banco}\n• Taxa efetiva anual ${s.taxaEstimada ? "estimada (cenário ilustrativo)" : "informada"}: ${s.taxaAnual.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}% a.a.\n• Juros estimados do financiamento: ${fmt(s.juros)}\n• Desembolso estimado no financiamento: ${fmt(s.custoFin)}\n\nValores nominais e ilustrativos. Ajustes automáticos de taxa por entrada e prazo são hipóteses de sensibilidade, não regras dos bancos ou ofertas aprovadas. Não incluem necessariamente reajustes, seguros, tarifas, tributos ou custos previstos em contrato. A contemplação não é garantida no mês indicado.\n\n📲 ${consultorAtual.nome} — ${consultorAtual.formatado}`;
-        }
-        function enviarWhatsApp() {
-            const url='https://wa.me/'+consultorAtual.numero+'?text='+encodeURIComponent(textoProposta());
-            window.open(url,'_blank','noopener');
-        }
-        async function copiarProposta() {
-            const txt=textoProposta();
-            try { await navigator.clipboard.writeText(txt); alert('Proposta copiada!'); }
-            catch(e) { window.prompt('Copie a proposta abaixo:',txt); }
-        }
-        
-
         const historicoIndices={};
         async function consultarIndices(){
           document.getElementById('statusIndice').textContent='Consultando dados oficiais...';
@@ -968,7 +1244,8 @@
           const dado=historicoIndices[codigo];
           const campo=document.getElementById('taxaOficial');
           campo.readOnly=!!dado;
-          campo.value=dado?dado.anual.toFixed(2):'';
+          if(dado)campo.value=dado.anual.toFixed(2);
+          else if(codigo!=='manual')campo.value='';
           document.getElementById('statusIndice').textContent=dado?'Acumulado oficial dos últimos 12 meses: '+dado.anual.toFixed(2)+'%; competência mais recente: '+dado.data+'.':codigo==='manual'?'Taxa manual, não oficial.':'Consulta indisponível para este índice. Selecione Manual para usar uma hipótese.';
           calcularIndice();
         }
@@ -1159,31 +1436,140 @@
         const consultorPadrao = {nome:'Soraia Mello - Gerente',numero:'5511999297191'};
         let consultorAtual = { ...consultorPadrao,formatado:'(11) 99929-7191'};
         function validarConsultor(nome, telefone) {
-          nome=String(nome||'').trim().replace(/\\s+/g,' ');
-          let numero=String(telefone||'').replace(/\\D/g,'');
+          nome=String(nome||'').trim().replace(/\s+/g,' ');
+          let numero=String(telefone||'').replace(/\D/g,'');
           if(numero.length===10||numero.length===11) numero='55'+numero;
-          if(nome.length<2||nome.length>70||/[<>]/.test(nome)||!/^55\\d{10,11}$/.test(numero)) return null;
+          if(nome.length<2||nome.length>70||/[<>]/.test(nome)||!/^55\d{10,11}$/.test(numero)) return null;
           const local=numero.slice(2);
           return {nome,numero,formatado:'('+local.slice(0,2)+') '+local.slice(2,-4)+'-'+local.slice(-4)};
         }
-        function gerarLinkConsultor() {
-          const dados=validarConsultor(document.getElementById('nomeGerador').value,document.getElementById('telefoneGerador').value);
-          const saida=document.getElementById('linkGerado');
-          if(!dados){saida.value='';document.getElementById('avisoGerador').textContent='Informe nome e WhatsApp com DDD válidos.';return;}
-          const url=new URL(window.location.origin+window.location.pathname);
-          url.searchParams.set('consultor',dados.nome);
-          url.searchParams.set('whatsapp',dados.numero);
-          saida.value=url.toString();
-          document.getElementById('avisoGerador').textContent='Link pronto para compartilhar.';
+        // Apenas parâmetros financeiros e informações públicas do consultor entram no link.
+        const CAMPOS_LINK_SIMULACAO = [
+          'credito','prazoConsorcio','prazoFin','planoUnifisa','taxaAdmAnual','fundoReservaPct',
+          'seguroMensalPct','mesContemplacao','lanceLivre','lanceEmbutidoPct','tipoAbatimento',
+          'ativarReduzida','parcelaReduzida','entradaPct','jurosBanco','sistemaFin','bancoFin',
+          'bancoAuto','bancoEspecial','modalidadeEmprestimo','linhaCreditoRural','ajustarTaxaCenario',
+          'indiceOficial','taxaOficial','anosIndice','vincularPrazoPatrimonial','mesRetiradaIndice',
+          'valorizacaoIndice','iofModoFin','iofManualFin','seguroMIPFin','seguroDFIFin',
+          'seguroPrestamistaFin','seguroBemFin','tarifaAvaliacaoFin','tarifaCadastroFin',
+          'registroFin','outrasTarifasFin','tarifaAdmMensalFin','financiarEncargosFin',
+          'encargosAutomaticosFin','tipoImovelFin','perfilTomadorFin'
+        ];
+        // A personalização e o compartilhamento são iguais para o administrador e para qualquer consultor.
+        function limparLinkCompartilhado(){
+          document.getElementById('linkGerado').value='';
+          document.getElementById('avisoGerador').textContent='Confira os dados e clique em Gerar link.';
         }
-        async function copiarLinkConsultor(){
-          gerarLinkConsultor();
-          const link=document.getElementById('linkGerado').value;
+        function gerarLinkCompartilhamento(){
+          const saida=document.getElementById('linkGerado');
+          const aviso=document.getElementById('avisoGerador');
+          try{
+            const dados=validarConsultor(document.getElementById('nomeGerador').value,document.getElementById('telefoneGerador').value);
+            if(!dados)throw new Error('Informe nome e WhatsApp com DDD válidos.');
+            const modo=document.getElementById('tipoLinkGerador').value;
+            if(!['simulacao','simulador'].includes(modo))throw new Error('Selecione o tipo de link.');
+            const url=new URL(window.location.origin+window.location.pathname);
+            url.searchParams.set('consultor',dados.nome);
+            url.searchParams.set('whatsapp',dados.numero);
+            if(modo==='simulacao'){
+              calcular();
+              url.searchParams.set('sim','1');
+              url.searchParams.set('produto',document.getElementById('produto').value);
+              for(const id of CAMPOS_LINK_SIMULACAO){
+                const el=document.getElementById(id);
+                if(!el)continue;
+                const valor=el.type==='checkbox'?(el.checked?'1':'0'):String(el.value||'');
+                if(valor.length>80)throw new Error('Um campo financeiro excedeu o limite do link.');
+                url.searchParams.set('s_'+id,valor);
+              }
+            }
+            url.hash='simulador';
+            saida.value=url.toString();
+            aviso.textContent=modo==='simulacao'
+              ?'Link da simulação pronto: valores e condições selecionados serão exibidos ao abrir.'
+              :'Link do simulador pronto: o cliente poderá preencher uma nova simulação.';
+            return saida.value;
+          }catch(e){
+            saida.value='';
+            aviso.textContent=e.message||'Não foi possível gerar o link.';
+            return '';
+          }
+        }
+        async function copiarLinkCompartilhamento(){
+          const link=gerarLinkCompartilhamento();
           if(!link)return;
-          try{await navigator.clipboard.writeText(link);document.getElementById('avisoGerador').textContent='Link copiado!';}
-          catch(e){window.prompt('Copie seu link:',link);}
+          try{
+            if(!navigator.clipboard?.writeText)throw new Error('Área de transferência indisponível.');
+            await navigator.clipboard.writeText(link);
+            document.getElementById('avisoGerador').textContent='Link copiado. Pronto para enviar.';
+          }catch(e){
+            window.prompt('Copie o link abaixo:',link);
+            document.getElementById('avisoGerador').textContent='Copie o endereço exibido no campo, se necessário.';
+          }
+        }
+        function enviarLinkCompartilhamentoWhatsApp(){
+          const link=gerarLinkCompartilhamento();
+          if(!link)return;
+          const modo=document.getElementById('tipoLinkGerador').value;
+          const dados=validarConsultor(document.getElementById('nomeGerador').value,document.getElementById('telefoneGerador').value);
+          const contato=dados?'\n\nConsultor: '+dados.nome+' | WhatsApp: '+dados.formatado:'';
+          const texto=(modo==='simulacao'
+            ?'Olá! Segue sua simulação ilustrativa no SimuladorLotus. Confira os valores e as condições estimadas: '+link
+            :'Olá! Acesse o SimuladorLotus para fazer uma simulação ilustrativa e conhecer as possibilidades: '+link)+contato;
+          // O destinatário é selecionado no WhatsApp; o número do consultor fica no link e no texto.
+          window.open('https://api.whatsapp.com/send?text='+encodeURIComponent(texto),'_blank','noopener,noreferrer');
+        }
+        function aplicarSimulacaoCompartilhada() {
+          const q=new URLSearchParams(window.location.search);
+          if(q.get('sim')!=='1')return;
+          const produto=document.getElementById('produto');
+          const valorProduto=q.get('produto');
+          if(!Array.from(produto.options).some(op=>op.value===valorProduto))return;
+          produto.value=valorProduto;
+          mudarProduto();
+          const restaurar=(id)=>{
+            const valor=q.get('s_'+id);
+            if(valor===null||valor.length>80)return;
+            const el=document.getElementById(id);
+            if(!el)return;
+            if(el.type==='checkbox'){el.checked=valor==='1';return;}
+            if(el.tagName==='SELECT'){
+              if(Array.from(el.options).some(op=>op.value===valor))el.value=valor;
+              return;
+            }
+            if(el.type==='number' && valor!=='' && !/^-?\d+(?:[.,]\d+)?$/.test(valor))return;
+            if(['credito','lanceLivre'].includes(id) && !/^[0-9.,]*$/.test(valor))return;
+            el.value=valor;
+          };
+          // A seleção do produto preenche menus dinâmicos; a tabela selecionada vem antes da taxa.
+          for(const id of ['credito','prazoConsorcio','planoUnifisa'])restaurar(id);
+          if(document.getElementById('planoUnifisa').value)aplicarTabelaUnifisa();
+          restaurar('modalidadeEmprestimo');
+          restaurar('linhaCreditoRural');
+          restaurar('perfilTomadorFin');
+          if(valorProduto==='capital_giro')atualizarEmprestimoEmpresarial();
+          restaurar('bancoFin');restaurar('bancoAuto');restaurar('bancoEspecial');
+          for(const id of CAMPOS_LINK_SIMULACAO){
+            if(['credito','prazoConsorcio','planoUnifisa','modalidadeEmprestimo','linhaCreditoRural','perfilTomadorFin','bancoFin','bancoAuto','bancoEspecial'].includes(id))continue;
+            restaurar(id);
+          }
+          document.getElementById('subBlocoReduzida').style.display=document.getElementById('ativarReduzida').checked?'block':'none';
+          atualizarVisibilidadeEncargosFinanciamento();
+          if(q.get('s_encargosAutomaticosFin')===null){
+            if(document.getElementById('encargosAutomaticosFin').checked)aplicarEncargosAutomaticosFinanciamento();
+          }else{
+            document.getElementById('notaBaseEncargosFin').textContent='Valores de encargos recuperados do link compartilhado; são estimativas registradas no momento do envio. Não representam cotação bancária, apólice ou CET. Atualize conforme a proposta.';
+          }
+          if(valorProduto==='investimento'){
+            if(document.getElementById('indiceOficial').value==='manual')calcularIndice();
+            else atualizarIndice();
+          }
+          calcular();
+          document.getElementById('tipoLinkGerador').value='simulacao';
+          document.getElementById('avisoGerador').textContent='Simulação compartilhada carregada. Os valores são ilustrativos e podem variar conforme as condições atualizadas.';
         }
         function aplicarConsultor(){
+          const q=new URLSearchParams(window.location.search);
           consultorAtual=validarConsultor(consultorPadrao.nome,consultorPadrao.numero);
           const d=consultorAtual;
           document.getElementById('nomeMarca').textContent='SORAIA MELLO';
@@ -1191,11 +1577,13 @@
           document.getElementById('nomeRodape').textContent=d.nome;
           document.getElementById('telefoneCabecalho').textContent=d.formatado;
           document.getElementById('telefoneRodape').textContent=d.formatado;
-          document.getElementById('telefoneBotao').textContent='Enviar no WhatsApp '+d.formatado;
           document.getElementById('whatsappNav').href='https://wa.me/'+d.numero+'?text='+encodeURIComponent('Olá, '+d.nome+'! Gostaria de conversar sobre consórcio.');
           document.getElementById('whatsappCabecalho').href='https://wa.me/'+d.numero+'?text='+encodeURIComponent('Olá! Gostaria de saber mais sobre consórcio.');
           document.getElementById('instagramRodape').hidden=true;
           document.title='SimuladorLotus | '+d.nome+' — Consórcio e Financiamento';
+          document.getElementById('nomeGerador').value=d.nome;
+          document.getElementById('telefoneGerador').value=d.formatado;
+          document.getElementById('linkGerado').value='';
         }
         window.onload = () => {
             aplicarConsultor();
@@ -1213,8 +1601,14 @@
             document.getElementById('vincularPrazoPatrimonial').addEventListener('change',sincronizarPrazoPatrimonial);
             document.getElementById('mesRetiradaIndice').addEventListener('input',calcularIndice);
             consultarIndices();
-            document.getElementById('entradaPct').addEventListener('input', calcular);
-            document.getElementById('entradaPct').addEventListener('change', calcular);
+            const atualizarCustosEPagamentos=()=>{
+                if(document.getElementById('encargosAutomaticosFin').checked)aplicarEncargosAutomaticosFinanciamento();
+                calcular();
+            };
+            document.getElementById('entradaPct').addEventListener('input',atualizarCustosEPagamentos);
+            document.getElementById('entradaPct').addEventListener('change',atualizarCustosEPagamentos);
+            document.getElementById('credito').addEventListener('input',atualizarCustosEPagamentos);
+            document.getElementById('credito').addEventListener('change',atualizarCustosEPagamentos);
             document.getElementById('prazoFin').addEventListener('input', calcular);
             document.getElementById('prazoFin').addEventListener('change', calcular);
             document.getElementById('ajustarTaxaCenario').addEventListener('change', calcular);
@@ -1225,10 +1619,23 @@
             // Recalcular imediatamente ao digitar, sem exigir troca de campo.
             const camposImediatos=['mesContemplacao','lanceLivre','lanceEmbutidoPct',
               'tipoAbatimento','taxaAdmAnual','fundoReservaPct','seguroMensalPct',
-              'sistemaFin','trMensal','iofFin','seguroFin','tarifasFin','encargosFin'];
+              'sistemaFin',...CAMPOS_ENCARGOS_FIN,'financiarEncargosFin'];
             for(const id of camposImediatos){
                 const el=document.getElementById(id);
-                if(el){el.addEventListener('input',calcular);el.addEventListener('change',calcular);}
+                if(!el)continue;
+                if(CAMPOS_ENCARGOS_FIN.includes(id)){
+                    el.addEventListener('input',()=>{
+                        if(document.getElementById('encargosAutomaticosFin').checked){
+                            document.getElementById('encargosAutomaticosFin').checked=false;
+                            aplicarEncargosAutomaticosFinanciamento();
+                        }
+                        calcular();
+                    });
+                    el.addEventListener('change',calcular);
+                }else{
+                    el.addEventListener('input',calcular);
+                    el.addEventListener('change',calcular);
+                }
             }
             for(const id of ['bancoFin','bancoAuto']){
                 const el=document.getElementById(id);
@@ -1236,6 +1643,7 @@
             }
             // Atualiza os valores visíveis também no primeiro carregamento.
             calcular();
+            aplicarSimulacaoCompartilhada();
         };
 
     </script>
