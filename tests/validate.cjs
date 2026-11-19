@@ -404,7 +404,7 @@ assert.doesNotMatch(html,/Testar Envio via WhatsApp|id="telefoneBotao"|function 
 assert.match(html,/const consultorPadrao = \{nome:'Fernando Leal',numero:'5511947662843'\}/);
 assert.match(html,/Consultor: '\+dados\.nome\+' \| WhatsApp: '\+dados\.formatado/);
 assert.match(html,/contemplação no mês escolhido é apenas uma hipótese matemática, nunca uma promessa/i);
-assert.match(html,/Encargos estimados conforme modalidade e banco/);
+assert.match(html,/Valores estimados; R\$ 0 pode indicar custo não identificado, não isenção/);
 assert.doesNotMatch(html,/Esta simulação não inclui taxas adicionais, seguros e tarifas\./);
 assert.match(html,/Custo total estimado:<\/span>\s*<strong id="valCustoConsorcio"/);
 assert.doesNotMatch(html,/id="painelReajusteFin"|id="encargosAutomaticos"|id="valEncargosFin"/);
