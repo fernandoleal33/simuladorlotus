@@ -56,6 +56,98 @@ const sac=sim(240000,12,360,'sac',0);
 const price=sim(240000,12,360,'price',0);
 assert.ok(sac.total<price.total,'SAC deve ter juros totais menores nas mesmas condições');
 assert.deepEqual(Object.keys(sim(0,12,360,'sac')).sort(),['juros','primeira','total','ultima']);
+// Taxas de referência conferidas contra dados BCB disponíveis em 18/11/2026.
+function obterTabelaTaxas(nome){
+ const match=html.match(new RegExp('const '+nome+' = (\\{[\\s\\S]*?\\});'));
+ assert.ok(match,'Tabela ausente: '+nome);
+ return Function('"use strict";return ('+match[1]+')')();
+}
+const taxasImovel=obterTabelaTaxas('taxasBancosImobiliario');
+const taxasAuto=obterTabelaTaxas('taxasBancosAuto');
+const taxasRurais=obterTabelaTaxas('linhasCreditoRural');
+for(const [banco,taxa] of Object.entries({
+ caixa:11.97,bradesco:12.27,santander:12.32,itau:12.22,
+ bb:14.42,inter:12.97,sicoob:10.93,sicredi:12.23
+})) assert.equal(taxasImovel[banco],taxa,'Imobiliário '+banco);
+for(const [banco,taxa] of Object.entries({
+ santander:24.36,itau:27.74,pan:41.85,bv:30.82,bradesco:22.17,safra:22.22
+})) assert.equal(taxasAuto[banco],taxa,'Veículo '+banco);
+for(const [linha,taxa] of Object.entries({
+ pronamp:9,custeio:12.5,inovagro:11.5,moderfrota:12.5,
+ moderfrotaPronamp:11.5,cooperativa:12,renovagro:8.5
+})) assert.equal(taxasRurais[linha].taxa,taxa,'Rural '+linha);
+assert.match(html,/outubro\/2026/);
+assert.match(html,/28\/10 a 04\/11\/2026/);
+assert.match(html,/value="moderfrotaPronamp"/);
+assert.match(html,/HIPÓTESE ILUSTRATIVA — NÃO é taxa verificada do banco/);
+assert.match(html,/produto==='luxo'\)document.getElementById\('ajustarTaxaCenario'\).checked=false/);
+assert.match(html,/restaurar\('linhaCreditoRural'\);\s*if\(valorProduto==='capital_giro'\)atualizarEmprestimoEmpresarial\(\)/);
+// Teste real da seleção das linhas, incluindo a visibilidade do seletor.
+const inicioRural=html.indexOf('const linhasCreditoRural =');
+const fimRural=html.indexOf('function alternarVitrine(indice)',inicioRural);
+assert.ok(inicioRural>0&&fimRural>inicioRural);
+let recalculosRurais=0;
+const camposRurais=new Map([
+ ['produto',{value:'capital_giro'}],
+ ['modalidadeEmprestimo',{value:'rural'}],
+ ['linhaCreditoRural',{value:'pronamp'}],
+ ['jurosBanco',{value:''}],
+ ['notaEmprestimo',{textContent:''}],
+ ['seletorCreditoRural',{style:{display:'none'}}],
+ ['ajustarTaxaCenario',{checked:true}],
+ ['prazoFin',{value:'96'}]
+]);
+const ctxRural=vm.createContext({
+ document:{getElementById:id=>camposRurais.get(id)||null},
+ calcular:()=>{recalculosRurais++;}
+});
+vm.runInContext(html.slice(inicioRural,fimRural),ctxRural);
+for(const [linha,taxa] of Object.entries({
+ pronamp:9,custeio:12.5,inovagro:11.5,moderfrota:12.5,
+ moderfrotaPronamp:11.5,cooperativa:12,renovagro:8.5
+})){
+ camposRurais.get('linhaCreditoRural').value=linha;
+ ctxRural.atualizarEmprestimoEmpresarial();
+ assert.equal(Number(camposRurais.get('jurosBanco').value),taxa);
+ assert.equal(camposRurais.get('seletorCreditoRural').style.display,'block');
+ assert.ok(camposRurais.get('notaEmprestimo').textContent.includes(taxa.toFixed(2).replace('.',',')));
+}
+camposRurais.get('modalidadeEmprestimo').value='home';
+ctxRural.atualizarEmprestimoEmpresarial();
+assert.equal(camposRurais.get('seletorCreditoRural').style.display,'none');
+assert.equal(Number(camposRurais.get('jurosBanco').value),18.16);
+assert.match(camposRurais.get('notaEmprestimo').textContent,/HIPÓTESE/);
+camposRurais.get('modalidadeEmprestimo').value='pronampe';
+ctxRural.atualizarEmprestimoEmpresarial();
+assert.equal(Number(camposRurais.get('jurosBanco').value),19.75);
+assert.equal(Number(camposRurais.get('prazoFin').value),72);
+// Veículos de luxo mostram média PF genérica sem ajuste automático; automóveis aceitam Safra.
+const inicioAuto=html.indexOf('const taxasBancosAuto =');
+const fimAuto=html.indexOf('// Instituições de referência por segmento.',inicioAuto);
+assert.ok(inicioAuto>0&&fimAuto>inicioAuto);
+const camposAuto=new Map([
+ ['produto',{value:'auto'}],
+ ['bancoAuto',{value:'safra'}],
+ ['jurosBanco',{value:''}],
+ ['notaBancoAuto',{textContent:''}],
+ ['ajustarTaxaCenario',{checked:true}]
+]);
+const ctxAuto=vm.createContext({
+ document:{getElementById:id=>camposAuto.get(id)||null},
+ atualizarTaxaCenario:()=>{},
+ calcular:()=>{},
+ taxaBaseSelecionada:null
+});
+vm.runInContext(html.slice(inicioAuto,fimAuto),ctxAuto);
+ctxAuto.selecionarBancoAuto();
+assert.equal(Number(camposAuto.get('jurosBanco').value),22.22);
+camposAuto.get('produto').value='luxo';
+camposAuto.get('ajustarTaxaCenario').checked=true;
+ctxAuto.selecionarBancoAuto();
+assert.equal(camposAuto.get('ajustarTaxaCenario').checked,false);
+assert.match(camposAuto.get('notaBancoAuto').textContent,/NÃO representa taxa específica/);
+console.log('Taxas BCB, Plano Safra, avisos de hipóteses e seleção por linha conferidos.');
+
 for(const id of ['produto','credito','prazoConsorcio','prazoFin','entradaPct','sistemaFin','bancoFin','bancoAuto','indiceOficial','resultadoIndice','valCustoBanco','linkGerado']){
  assert.ok(html.includes('id="'+id+'"'),'Campo ausente: '+id);
 }
