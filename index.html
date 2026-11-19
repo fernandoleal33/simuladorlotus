@@ -1170,7 +1170,7 @@
               `• Antes da contemplação: ${mesesAntes} mês(es); parcelas calculadas por fase, com total pago de ${fmt(pagoAntes)}. Lance próprio aplicado: ${fmt(lanceProprioAplicado)}; lance embutido aplicado: ${fmt(embutidoAplicado)}.<br>`+
               `• ${reducaoText}<br>`+
               `• Desembolso estimado no consórcio (parcelas + lance com recursos próprios): <strong>${fmt(desembolsoCons)}</strong>.<br>`+
-              `• Financiamento ${sistema.toUpperCase()}: crédito destinado ao bem ${fmt(principalFin)}; saldo financiado ${fmt(custosFin.saldoFinanciado)}; juros estimados ${fmt(fin.juros)}; IOF ${fmt(custosFin.iof)}; despesas iniciais ${fmt(custosFin.tarifas)}; seguros ${fmt(custosFin.totalSeguros)}; tarifas mensais acumuladas ${fmt(custosFin.totalAdministracao)}; entrada ${fmt(valorEntrada)}; total das parcelas e custos mensais ${fmt(totalParcelasFin)}; desembolso total ${fmt(custoFin)}. ${custosFin.financiar?'Custos iniciais incluídos no financiamento.':'Custos iniciais pagos à vista.'}<br>`+
+              `• Financiamento ${sistema.toUpperCase()}: entrada ${fmt(valorEntrada)}, saldo financiado ${fmt(custosFin.saldoFinanciado)}, parcelas ${fmt(totalParcelasFin)} e desembolso total ${fmt(custoFin)}. Os encargos estão no quadro do financiamento.<br>`+
               `• Diferença nominal: <strong>${diffText}</strong> (${diffLabel}). Essa comparação não representa equivalência perfeita de prazo, disponibilidade imediata ou poder de compra.`+
               (aviso.length?`<br><br><strong>Atenção:</strong><br>• ${aviso.join('<br>• ')}`:'');
             document.getElementById('textoDiferencas').innerHTML=resumo;
