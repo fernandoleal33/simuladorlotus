@@ -1228,8 +1228,11 @@
           'valorizacaoIndice'
         ];
         function criarUrlSimulacaoAtual() {
-          const dados=validarConsultor(document.getElementById('nomeGerador').value,document.getElementById('telefoneGerador').value);
-          if(!dados)throw new Error('Informe o nome e o WhatsApp do consultor com DDD válidos.');
+          // O link do cliente utiliza o consultor já ativo na página, independentemente
+          // do formulário separado para personalização de outros consultores.
+          const dados=validarConsultor(consultorAtual.nome,consultorAtual.numero)
+            ||validarConsultor(consultorPadrao.nome,consultorPadrao.numero);
+          if(!dados)throw new Error('Não foi possível identificar o contato do consultor.');
           const url=new URL(window.location.origin+window.location.pathname);
           url.searchParams.set('consultor',dados.nome);
           url.searchParams.set('whatsapp',dados.numero);
