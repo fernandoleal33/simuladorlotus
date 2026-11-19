@@ -910,13 +910,13 @@
             }
             return { primeira, ultima, juros:Math.max(0,total-principal), total };
         }
-        function desenharGraficoComparativo(cons,fin,prazoCons,prazoFin,entrada,mesCont,parcelaAntes,adicionalInicial,mesesAntecipados,parcelaDepois,lanceProprio,sistema,principal,jurosAnual) {
+        function desenharGraficoComparativo(cons,fin,prazoCons,prazoFin,entrada,mesCont,parcelaAntes,adicionalInicial,mesesAntecipados,parcelaDepois,lanceProprio,sistema,principal,jurosAnual,despesasIniciaisAVista=0,adicionalMensal=0) {
             const svg=document.getElementById('graficoComparativo');
             if(!svg)return;
             const NS='http://www.w3.org/2000/svg',W=700,H=290,L=76,R=18,T=15,B=43;
             const maxMes=Math.max(prazoCons,prazoFin,1),a=Math.pow(1+jurosAnual/100,1/12)-1;
-            const serieCons=[0],serieFin=[entrada];
-            let saldo=principal,acumuladoCons=0,acumuladoFin=entrada;
+            const serieCons=[0],serieFin=[entrada+despesasIniciaisAVista];
+            let saldo=principal,acumuladoCons=0,acumuladoFin=entrada+despesasIniciaisAVista;
             for(let m=1;m<=maxMes;m++){
                 if(m<=prazoCons){
                     const parcela=m<=mesCont?parcelaAntes+(m<=mesesAntecipados?adicionalInicial:0):parcelaDepois;
@@ -924,7 +924,7 @@
                     if(m===mesCont)acumuladoCons+=Math.max(0,lanceProprio);
                     acumuladoCons=Math.min(cons,acumuladoCons);
                 }
-                if(m<=prazoFin&&principal>0){
+                if(m<=prazoFin&&(principal>0||adicionalMensal>0)){
                     let parcela=0;
                     if(sistema==='sac'){
                         const amort=saldo/(prazoFin-m+1);
@@ -933,7 +933,7 @@
                     }else{
                         parcela=a===0?principal/prazoFin:principal*a/(1-Math.pow(1+a,-prazoFin));
                     }
-                    acumuladoFin+=parcela;
+                    acumuladoFin+=parcela+adicionalMensal;
                 }
                 serieCons.push(m>=prazoCons?cons:acumuladoCons);
                 serieFin.push(m>=prazoFin?fin:acumuladoFin);
@@ -1029,19 +1029,30 @@
             const principalFin=Math.max(0,credito-valorEntrada);
             const jurosAA=Math.max(0,num('jurosBanco',0));
             const sistema=document.getElementById('sistemaFin').value;
-            const fin=calcularFinanciamento(principalFin,jurosAA,prazoFin,sistema,0);
-            const encargosAdicionaisFin=0; // Despesas bancárias não estimadas nem incluídas.
-            const custoFin=valorEntrada+fin.total+encargosAdicionaisFin;
+            const custosFin=calcularEncargosFinanciamento(produto,principalFin,jurosAA,prazoFin,sistema);
+            const fin=calcularFinanciamento(custosFin.saldoFinanciado,jurosAA,prazoFin,sistema,0);
+            const totalParcelasFin=fin.total+custosFin.totalSeguros+custosFin.totalAdministracao;
+            const custoFin=valorEntrada+custosFin.pagoAVista+totalParcelasFin;
             const diferenca=custoFin-desembolsoCons;
             const fmtPct=(v)=>`${v.toLocaleString('pt-BR',{maximumFractionDigits:2})}%`;
             document.getElementById('valLanceEmbutidoText').textContent=`Valor estimado do lance embutido: ${fmt(lanceEmbutido)} | Crédito líquido: ${fmt(creditoLiquido)}`;
             document.getElementById('valEntradaText').textContent=`Entrada estimada: ${fmt(valorEntrada)} (${fmtPct(valorEntradaPct)})`;
             document.getElementById('valEntradaFin').textContent=`${fmt(valorEntrada)} (${fmtPct(valorEntradaPct)})`;
             document.getElementById('valPrincipalFin').textContent=fmt(principalFin);
-            document.getElementById('valParcBanco').textContent=fmt(fin.primeira);
-            document.getElementById('valUltParcBanco').textContent=fmt(fin.ultima);
+            document.getElementById('valIOFFin').textContent=fmt(custosFin.iof);
+            document.getElementById('valTarifasFin').textContent=fmt(custosFin.tarifas);
+            document.getElementById('valSaldoFin').textContent=fmt(custosFin.saldoFinanciado);
+            document.getElementById('valInicialFin').textContent=fmt(valorEntrada+custosFin.pagoAVista);
+            document.getElementById('valParcBanco').textContent=fmt(fin.primeira+custosFin.encargosMensais);
+            document.getElementById('valUltParcBanco').textContent=fmt(fin.ultima+custosFin.encargosMensais);
             document.getElementById('valJurosBanco').textContent=fmt(fin.juros);
+            document.getElementById('valSegurosFin').textContent=fmt(custosFin.totalSeguros);
+            document.getElementById('valAdmFin').textContent=fmt(custosFin.totalAdministracao);
+            document.getElementById('valTotalParcelasFin').textContent=fmt(totalParcelasFin);
             document.getElementById('valCustoBanco').textContent=fmt(custoFin);
+            document.getElementById('notaEncargosFin').textContent=
+                (custosFin.financiar?'IOF e despesas iniciais incorporados ao saldo e sujeitos a juros. ':'IOF e despesas iniciais pagos à vista. ')+
+                'Seguros e tarifas mensais supostos constantes; cálculo não constitui CET bancário. Consulte o contrato para valores e incidência.';
             document.getElementById('labelParcPos').textContent=modoAbate==='parcela'
               ? 'Parcela após contemplação — redução de parcela (hipótese):'
               : 'Parcela após contemplação — parcela mantida, prazo reduzido (hipótese):';
@@ -1071,7 +1082,7 @@
             document.getElementById('valLanceEmbutidoResumo').textContent=fmt(embutidoAplicado);
             document.getElementById('valCreditoLiquido').textContent=fmt(creditoLiquido);
             document.getElementById('valCustoConsorcio').textContent=fmt(desembolsoCons);
-            if(prazoPlanoValido&&credito>0)desenharGraficoComparativo(desembolsoCons,custoFin,prazoCons,prazoFin,valorEntrada,mesCont,parcelaReduzida,adicionalInicial,mesesTaxaAntecipada,parcelaPos,lanceProprioAplicado,sistema,principalFin,jurosAA);
+            if(prazoPlanoValido&&credito>0)desenharGraficoComparativo(desembolsoCons,custoFin,prazoCons,prazoFin,valorEntrada,mesCont,parcelaReduzida,adicionalInicial,mesesTaxaAntecipada,parcelaPos,lanceProprioAplicado,sistema,custosFin.saldoFinanciado,jurosAA,custosFin.pagoAVista,custosFin.encargosMensais);
             else {document.getElementById('graficoComparativo').replaceChildren();document.getElementById('graficoComparativoResumo').textContent='Ajuste o crédito ou prazo para exibir a comparação.';}
             
             document.getElementById('divSubTituloFin').textContent=produto==='capital_giro'?`Empréstimo empresarial (${sistema.toUpperCase()})`:`Financiamento (${sistema.toUpperCase()})`;
@@ -1104,14 +1115,14 @@
               `• Antes da contemplação: ${mesesAntes} mês(es); parcelas calculadas por fase, com total pago de ${fmt(pagoAntes)}. Lance próprio aplicado: ${fmt(lanceProprioAplicado)}; lance embutido aplicado: ${fmt(embutidoAplicado)}.<br>`+
               `• ${reducaoText}<br>`+
               `• Desembolso estimado no consórcio (parcelas + lance com recursos próprios): <strong>${fmt(desembolsoCons)}</strong>.<br>`+
-              `• Financiamento ${sistema.toUpperCase()}: entrada ${fmt(valorEntrada)} + parcelas ${fmt(fin.total)}; juros estimados ${fmt(fin.juros)}; desembolso total ${fmt(custoFin)}.<br>`+
+              `• Financiamento ${sistema.toUpperCase()}: crédito destinado ao bem ${fmt(principalFin)}; saldo financiado ${fmt(custosFin.saldoFinanciado)}; juros estimados ${fmt(fin.juros)}; IOF ${fmt(custosFin.iof)}; despesas iniciais ${fmt(custosFin.tarifas)}; seguros ${fmt(custosFin.totalSeguros)}; tarifas mensais acumuladas ${fmt(custosFin.totalAdministracao)}; entrada ${fmt(valorEntrada)}; total das parcelas e custos mensais ${fmt(totalParcelasFin)}; desembolso total ${fmt(custoFin)}. ${custosFin.financiar?'Custos iniciais incluídos no financiamento.':'Custos iniciais pagos à vista.'}<br>`+
               `• Diferença nominal: <strong>${diffText}</strong> (${diffLabel}). Essa comparação não representa equivalência perfeita de prazo, disponibilidade imediata ou poder de compra.`+
               (aviso.length?`<br><br><strong>Atenção:</strong><br>• ${aviso.join('<br>• ')}`:'');
             document.getElementById('textoDiferencas').innerHTML=resumo;
             // Mantém a área antiga de investimento oculta: projeções de valorização/aluguel não são retorno garantido.
             document.getElementById('blocoExplicacaoInvestimento').style.display='none';
             const bancoSelecionado = produto === 'imovel' ? document.getElementById('bancoFin').selectedOptions[0].text : produto === 'auto' ? document.getElementById('bancoAuto').selectedOptions[0].text : 'Taxa personalizada';
-            window.__simulacaoAtual={taxaEstimada:document.getElementById('ajustarTaxaCenario').checked && (produto==='imovel' || produto==='auto') && bancoSelecionado!=='Personalizar taxa',produto:produtoEl.options[produtoEl.selectedIndex].text,credito,prazoCons,prazoFin,mesCont,parcelaPre,parcelaPos,lanceLivre:lanceProprioAplicado,lanceEmbutido:embutidoAplicado,creditoLiquido,desembolsoCons,custoFin,diferenca,juros:fin.juros,entrada:valorEntrada,sistema,banco:bancoSelecionado,taxaAnual:jurosAA};
+            window.__simulacaoAtual={taxaEstimada:document.getElementById('ajustarTaxaCenario').checked && (produto==='imovel' || produto==='auto') && bancoSelecionado!=='Personalizar taxa',produto:produtoEl.options[produtoEl.selectedIndex].text,credito,prazoCons,prazoFin,mesCont,parcelaPre,parcelaPos,lanceLivre:lanceProprioAplicado,lanceEmbutido:embutidoAplicado,creditoLiquido,desembolsoCons,custoFin,diferenca,juros:fin.juros,entrada:valorEntrada,sistema,banco:bancoSelecionado,taxaAnual:jurosAA,iof:custosFin.iof,tarifas:custosFin.tarifas,seguros:custosFin.totalSeguros,administracao:custosFin.totalAdministracao,saldoFinanciado:custosFin.saldoFinanciado};
         }
         const historicoIndices={};
         async function consultarIndices(){
