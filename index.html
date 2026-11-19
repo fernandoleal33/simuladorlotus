@@ -702,6 +702,7 @@
             const nota=document.getElementById('notaEmprestimo');
             const blocoRural=document.getElementById('seletorCreditoRural');
             blocoRural.style.display=modo==='rural'?'block':'none';
+            document.getElementById('blocoTomadorFin').style.display=(modo==='home'||modo==='veiculo')?'block':'none';
             document.getElementById('ajustarTaxaCenario').checked=false;
             if(modo==='rural'){
                 const campoLinha=document.getElementById('linhaCreditoRural');
@@ -719,6 +720,7 @@
                 nota.textContent=referencia.nota;
             }
             if(modo==='pronampe'&&Number(document.getElementById('prazoFin').value)>72)document.getElementById('prazoFin').value=72;
+            sincronizarIOFConformeFinalidade();
             calcular();
         }
         function alternarVitrine(indice) {
@@ -879,9 +881,37 @@
             atualizarVisibilidadeEncargosFinanciamento();
             calcular();
         }
+        // A incidência depende da finalidade do CRÉDITO, não da garantia.
+        // Decreto 6.306/2007: art. 9, I (finalidade habitacional) e art. 7, VII
+        // (aquisição de imóvel não residencial por pessoa física).
+        // Home Equity PF é crédito com garantia, sem isenção habitacional automática.
+        // Nas simulações empresariais PJ, o IOF só é confirmado por proposta.
+        // https://www2.camara.leg.br/legin/fed/decret/2007/decreto-6306-14-dezembro-2007-566561-normaatualizada-pe.html
+        function modoIOFConformeFinalidade(){
+            const prod=document.getElementById('produto').value;
+            if(prod==='imovel'){
+                return document.getElementById('tipoImovelFin').value==='comercial'?'auto_pf':'isento';
+            }
+            if(prod==='capital_giro'){
+                const modalidade=document.getElementById('modalidadeEmprestimo').value;
+                if(modalidade==='home'||modalidade==='veiculo'){
+                    return document.getElementById('perfilTomadorFin').value==='pf'?'auto_pf':'manual';
+                }
+                return 'manual';
+            }
+            return ['auto','moto','luxo'].includes(prod)?'auto_pf':'manual';
+        }
+        function sincronizarIOFConformeFinalidade(){
+            const modo=modoIOFConformeFinalidade();
+            document.getElementById('iofModoFin').value=modo;
+            atualizarVisibilidadeEncargosFinanciamento();
+        }
+        function alterarPerfilTomadorFin(){
+            sincronizarIOFConformeFinalidade();
+            calcular();
+        }
         function alterarTipoImovelFin(){
-            const tipo=document.getElementById('tipoImovelFin').value;
-            document.getElementById('iofModoFin').value=tipo==='comercial'?'manual':'isento';
+            sincronizarIOFConformeFinalidade();
             aplicarEncargosAutomaticosFinanciamento();
             atualizarVisibilidadeEncargosFinanciamento();
             calcular();
@@ -889,9 +919,9 @@
         function prepararEncargosFinanciamento(){
             const produto=document.getElementById('produto').value;
             document.getElementById('tipoImovelFin').value='sfh';
+            document.getElementById('perfilTomadorFin').value='pf';
             document.getElementById('encargosAutomaticosFin').checked=true;
-            document.getElementById('iofModoFin').value=produto==='imovel'?'isento':
-                ['auto','moto','luxo'].includes(produto)?'auto_pf':'manual';
+            sincronizarIOFConformeFinalidade();
             document.getElementById('financiarEncargosFin').checked=false;
             aplicarEncargosAutomaticosFinanciamento();
             atualizarVisibilidadeEncargosFinanciamento();
@@ -1417,7 +1447,7 @@
           'valorizacaoIndice','iofModoFin','iofManualFin','seguroMIPFin','seguroDFIFin',
           'seguroPrestamistaFin','seguroBemFin','tarifaAvaliacaoFin','tarifaCadastroFin',
           'registroFin','outrasTarifasFin','tarifaAdmMensalFin','financiarEncargosFin',
-          'encargosAutomaticosFin','tipoImovelFin'
+          'encargosAutomaticosFin','tipoImovelFin','perfilTomadorFin'
         ];
         // A personalização e o compartilhamento são iguais para o administrador e para qualquer consultor.
         function limparLinkCompartilhado(){
@@ -1510,10 +1540,11 @@
           if(document.getElementById('planoUnifisa').value)aplicarTabelaUnifisa();
           restaurar('modalidadeEmprestimo');
           restaurar('linhaCreditoRural');
+          restaurar('perfilTomadorFin');
           if(valorProduto==='capital_giro')atualizarEmprestimoEmpresarial();
           restaurar('bancoFin');restaurar('bancoAuto');restaurar('bancoEspecial');
           for(const id of CAMPOS_LINK_SIMULACAO){
-            if(['credito','prazoConsorcio','planoUnifisa','modalidadeEmprestimo','linhaCreditoRural','bancoFin','bancoAuto','bancoEspecial'].includes(id))continue;
+            if(['credito','prazoConsorcio','planoUnifisa','modalidadeEmprestimo','linhaCreditoRural','perfilTomadorFin','bancoFin','bancoAuto','bancoEspecial'].includes(id))continue;
             restaurar(id);
           }
           document.getElementById('subBlocoReduzida').style.display=document.getElementById('ativarReduzida').checked?'block':'none';
