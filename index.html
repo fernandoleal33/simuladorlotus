@@ -1351,7 +1351,9 @@
           'ativarReduzida','parcelaReduzida','entradaPct','jurosBanco','sistemaFin','bancoFin',
           'bancoAuto','bancoEspecial','modalidadeEmprestimo','linhaCreditoRural','ajustarTaxaCenario',
           'indiceOficial','taxaOficial','anosIndice','vincularPrazoPatrimonial','mesRetiradaIndice',
-          'valorizacaoIndice'
+          'valorizacaoIndice','iofModoFin','iofManualFin','seguroMIPFin','seguroDFIFin',
+          'seguroPrestamistaFin','seguroBemFin','tarifaAvaliacaoFin','tarifaCadastroFin',
+          'registroFin','outrasTarifasFin','tarifaAdmMensalFin','financiarEncargosFin'
         ];
         // A personalização e o compartilhamento são iguais para o administrador e para qualquer consultor.
         function limparLinkCompartilhado(){
@@ -1451,6 +1453,7 @@
             restaurar(id);
           }
           document.getElementById('subBlocoReduzida').style.display=document.getElementById('ativarReduzida').checked?'block':'none';
+          atualizarVisibilidadeEncargosFinanciamento();
           if(valorProduto==='investimento'){
             if(document.getElementById('indiceOficial').value==='manual')calcularIndice();
             else atualizarIndice();
@@ -1504,7 +1507,7 @@
             // Recalcular imediatamente ao digitar, sem exigir troca de campo.
             const camposImediatos=['mesContemplacao','lanceLivre','lanceEmbutidoPct',
               'tipoAbatimento','taxaAdmAnual','fundoReservaPct','seguroMensalPct',
-              'sistemaFin','trMensal','iofFin','seguroFin','tarifasFin','encargosFin'];
+              'sistemaFin',...CAMPOS_ENCARGOS_FIN,'financiarEncargosFin'];
             for(const id of camposImediatos){
                 const el=document.getElementById(id);
                 if(el){el.addEventListener('input',calcular);el.addEventListener('change',calcular);}
