@@ -153,6 +153,84 @@ for(const id of ['produto','credito','prazoConsorcio','prazoFin','entradaPct','s
 }
 assert.match(html,/Valor de Entrada:<\/span>\s*<strong id="valEntradaFin"/);
 assert.doesNotMatch(html,/Valor de Entrada Exigido|Valor de Entrada Obrigatória no Banco/);
+// IOF, seguros e tarifas: modelos ilustrativos, separados e sem dupla contagem.
+const inicioEncargos=html.indexOf('const CAMPOS_ENCARGOS_FIN=');
+const fimEncargos=html.indexOf('function calcularFinanciamento(',inicioEncargos);
+assert.ok(inicioEncargos>=0 && fimEncargos>inicioEncargos,'Funções de encargos não encontradas');
+const camposEncargos=new Map([
+ ['produto',{value:'auto'}],
+ ['iofModoFin',{value:'auto_pf'}],
+ ['iofManualFin',{value:'450'}],
+ ['seguroMIPFin',{value:'85'}],
+ ['seguroDFIFin',{value:'35'}],
+ ['seguroPrestamistaFin',{value:'110'}],
+ ['seguroBemFin',{value:'20'}],
+ ['tarifaAvaliacaoFin',{value:'500'}],
+ ['tarifaCadastroFin',{value:'200'}],
+ ['registroFin',{value:'300'}],
+ ['outrasTarifasFin',{value:'100'}],
+ ['tarifaAdmMensalFin',{value:'15'}],
+ ['financiarEncargosFin',{checked:false}],
+ ['blocoSegurosHabitacionaisFin',{style:{display:'grid'}}],
+ ['blocoSegurosVeiculoFin',{style:{display:'grid'}}],
+ ['blocoIOFManualFin',{style:{display:'none'}}],
+ ['notaIOFFin',{textContent:''}]
+]);
+const ctxEncargos=vm.createContext({
+ document:{getElementById:id=>camposEncargos.get(id)||null},
+ num:(id,def=0)=>{const n=Number(camposEncargos.get(id)?.value);return Number.isFinite(n)?n:def;},
+ calcular:()=>{}
+});
+vm.runInContext(html.slice(inicioEncargos,fimEncargos),ctxEncargos);
+const modeloIOF=ctxEncargos.calcularIOFEstimadoPessoaFisica;
+perto(modeloIOF(1200,0,12,'sac'),23.75,0.02);
+assert.equal(modeloIOF(0,24,48,'price'),0);
+const encBase=ctxEncargos.calcularEncargosFinanciamento('auto',80000,24,60,'price');
+assert.ok(encBase.iof>0,'Veículo PF tributável deve gerar IOF estimado');
+assert.equal(encBase.tarifas,1100);
+assert.equal(encBase.seguroMensal,130);
+assert.equal(encBase.totalSeguros,7800);
+assert.equal(encBase.totalAdministracao,900);
+perto(encBase.saldoFinanciado,80000);
+perto(encBase.pagoAVista,encBase.iof+1100);
+camposEncargos.get('financiarEncargosFin').checked=true;
+const encFinanciado=ctxEncargos.calcularEncargosFinanciamento('auto',80000,24,60,'price');
+perto(encFinanciado.saldoFinanciado,80000+encFinanciado.iof+1100);
+perto(encFinanciado.pagoAVista,0);
+const fAVista=sim(encBase.saldoFinanciado,24,60,'price');
+const fFinanciado=sim(encFinanciado.saldoFinanciado,24,60,'price');
+const custoAVista=20000+encBase.pagoAVista+fAVista.total+encBase.totalSeguros+encBase.totalAdministracao;
+const custoFinanciado=20000+encFinanciado.pagoAVista+fFinanciado.total+encFinanciado.totalSeguros+encFinanciado.totalAdministracao;
+assert.ok(custoFinanciado>custoAVista,'Financiar despesas deve gerar mais juros, não duplicar os custos');
+camposEncargos.get('produto').value='imovel';
+camposEncargos.get('iofModoFin').value='isento';
+camposEncargos.get('financiarEncargosFin').checked=false;
+const encHab=ctxEncargos.calcularEncargosFinanciamento('imovel',240000,12,360,'sac');
+assert.equal(encHab.iof,0);
+assert.equal(encHab.seguroMensal,120);
+assert.equal(encHab.totalSeguros,43200);
+assert.equal(encHab.tarifas,1100);
+ctxEncargos.atualizarVisibilidadeEncargosFinanciamento();
+assert.equal(camposEncargos.get('blocoSegurosHabitacionaisFin').style.display,'grid');
+assert.equal(camposEncargos.get('blocoSegurosVeiculoFin').style.display,'none');
+camposEncargos.get('iofModoFin').value='manual';
+ctxEncargos.atualizarVisibilidadeEncargosFinanciamento();
+assert.equal(camposEncargos.get('blocoIOFManualFin').style.display,'block');
+assert.equal(ctxEncargos.calcularEncargosFinanciamento('imovel',240000,12,360,'sac').iof,450);
+ctxEncargos.prepararEncargosFinanciamento();
+assert.equal(camposEncargos.get('iofModoFin').value,'isento');
+assert.equal(camposEncargos.get('tarifaAvaliacaoFin').value,'0');
+assert.equal(camposEncargos.get('financiarEncargosFin').checked,false);
+camposEncargos.get('produto').value='auto';
+ctxEncargos.prepararEncargosFinanciamento();
+assert.equal(camposEncargos.get('iofModoFin').value,'auto_pf');
+for(const id of ['valIOFFin','valTarifasFin','valSaldoFin','valInicialFin','valSegurosFin','valAdmFin','valTotalParcelasFin','blocoEncargosFinanciamento']){
+ assert.ok(html.includes('id="'+id+'"'),'Campo de encargos ausente: '+id);
+}
+assert.match(html,/custoFin=valorEntrada\+custosFin\.pagoAVista\+totalParcelasFin/);
+assert.match(html,/desenharGraficoComparativo\([^\n]+custosFin\.pagoAVista,custosFin\.encargosMensais\)/);
+console.log('IOF, seguros, tarifas, saldo financiado e desembolso total conferidos.');
+
 // Compartilhamento unificado: um painel para administrador e demais consultores.
 assert.match(html,/id="compartilharSimulador"/);
 assert.equal((html.match(/id="linkGerado"/g)||[]).length,1,'Só um campo de link');
@@ -196,7 +274,11 @@ const camposLink=new Map([
  ['ativarReduzida',{checked:false,type:'checkbox'}],
  ['subBlocoReduzida',{style:{display:'none'}}],
  ['avisoGerador',{textContent:''}],
- ['linkGerado',{value:''}]
+ ['linkGerado',{value:''}],
+ ['iofModoFin',{value:'auto_pf',tagName:'SELECT',options:[{value:'isento'},{value:'auto_pf'},{value:'manual'}]}],
+ ['seguroPrestamistaFin',{value:'100',type:'number'}],
+ ['tarifaAvaliacaoFin',{value:'500',type:'number'}],
+ ['financiarEncargosFin',{checked:true,type:'checkbox'}]
 ]);
 let calculosCompartilhamento=0;
 const localTeste={origin:'https://fernandoleal33.github.io',pathname:'/simuladorlotus/',search:''};
@@ -212,6 +294,7 @@ const ambienteCompartilhamento=vm.createContext({
  atualizarEmprestimoEmpresarial:()=>{},
  calcularIndice:()=>{},
  atualizarIndice:()=>{},
+ atualizarVisibilidadeEncargosFinanciamento:()=>{},
  validarConsultor:validarConsultorReal
 });
 vm.runInContext(html.slice(inicioLink,fimLink),ambienteCompartilhamento);
@@ -226,6 +309,10 @@ assert.equal(enderecoGerado.searchParams.get('s_credito'),'125.000,00');
 assert.equal(enderecoGerado.searchParams.get('s_planoUnifisa'),'gamma');
 assert.equal(enderecoGerado.searchParams.get('s_lanceLivre'),'10.000,00');
 assert.equal(enderecoGerado.searchParams.get('s_ajustarTaxaCenario'),'1');
+assert.equal(enderecoGerado.searchParams.get('s_iofModoFin'),'auto_pf');
+assert.equal(enderecoGerado.searchParams.get('s_seguroPrestamistaFin'),'100');
+assert.equal(enderecoGerado.searchParams.get('s_tarifaAvaliacaoFin'),'500');
+assert.equal(enderecoGerado.searchParams.get('s_financiarEncargosFin'),'1');
 assert.equal(enderecoGerado.hash,'#simulador');
 assert.ok(!enderecoGerado.toString().includes('CPF'),'Não compartilhar documentos pessoais');
 assert.equal(calculosCompartilhamento,1);
@@ -237,6 +324,9 @@ assert.ok(mensagemWhatsAppCompartilhamento.includes('whatsapp=5511947662843'),'C
 camposLink.get('produto').value='imovel';
 camposLink.get('credito').value='300.000,00';
 camposLink.get('planoUnifisa').value='';
+camposLink.get('seguroPrestamistaFin').value='0';
+camposLink.get('tarifaAvaliacaoFin').value='0';
+camposLink.get('financiarEncargosFin').checked=false;
 localTeste.search=enderecoGerado.search;
 ambienteCompartilhamento.aplicarSimulacaoCompartilhada();
 assert.equal(camposLink.get('produto').value,'auto');
@@ -245,6 +335,9 @@ assert.equal(camposLink.get('prazoConsorcio').value,'80');
 assert.equal(camposLink.get('planoUnifisa').value,'gamma');
 assert.equal(camposLink.get('lanceLivre').value,'10.000,00');
 assert.equal(camposLink.get('ajustarTaxaCenario').checked,true);
+assert.equal(camposLink.get('seguroPrestamistaFin').value,'100');
+assert.equal(camposLink.get('tarifaAvaliacaoFin').value,'500');
+assert.equal(camposLink.get('financiarEncargosFin').checked,true);
 assert.equal(calculosCompartilhamento,3,'Recalcula cenário na abertura');
 camposLink.get('tipoLinkGerador').value='simulador';
 camposLink.get('nomeGerador').value='Outro Consultor';
@@ -264,7 +357,8 @@ assert.doesNotMatch(html,/Testar Envio via WhatsApp|id="telefoneBotao"|function 
 assert.match(html,/const consultorPadrao = \{nome:'Fernando Leal',numero:'5511947662843'\}/);
 assert.match(html,/Consultor: '\+dados\.nome\+' \| WhatsApp: '\+dados\.formatado/);
 assert.match(html,/contemplação no mês escolhido é apenas uma hipótese matemática, nunca uma promessa/i);
-assert.match(html,/Esta simulação não inclui taxas adicionais, seguros e tarifas\./);
+assert.match(html,/Os custos adicionais informados são incluídos no desembolso/);
+assert.doesNotMatch(html,/Esta simulação não inclui taxas adicionais, seguros e tarifas\./);
 assert.match(html,/Custo total estimado:<\/span>\s*<strong id="valCustoConsorcio"/);
 assert.doesNotMatch(html,/id="painelReajusteFin"|id="encargosAutomaticos"|id="valEncargosFin"/);
 console.log('Financiamento SAC/Price, campos, aviso e WhatsApp: verificações estáticas e matemáticas OK.');
