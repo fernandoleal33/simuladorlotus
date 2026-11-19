@@ -843,24 +843,98 @@
         // Decreto 6.306/2007, art. 7º: https://www.planalto.gov.br/ccivil_03/_ato2007-2010/2007/decreto/d6306.htm
         const CAMPOS_ENCARGOS_FIN=['iofManualFin','seguroMIPFin','seguroDFIFin','seguroPrestamistaFin',
             'seguroBemFin','tarifaAvaliacaoFin','tarifaCadastroFin','registroFin','outrasTarifasFin','tarifaAdmMensalFin'];
+        // Referências publicamente verificadas + cenários EXPRESSAMENTE ilustrativos.
+        // Em nenhum caso o banco publica, para todos os clientes, um pacote fixo de MIP/DFI,
+        // tarifas, cartório e seguro. Dados do contrato sempre prevalecem.
+        // Santander imóveis residenciais: até R$ 1.950 para avaliação, R$ 25/mês em SFH:
+        // https://www.santander.com.br/emprestimos/credito/imobiliario
+        // https://www.santander.com.br/blog/para-voce/sfh/
+        // Santander comercial: até R$ 3.300 para avaliação.
+        // PAN: exemplo ILUSTRATIVO de avaliação de R$ 650 e cadastro de R$ 850,
+        // quando aplicável. NÃO é tarifa obrigatória ou valor da proposta:
+        // https://www.bancopan.com.br/produtos/financiamento-de-veiculos/
+        const REFERENCIAS_DESPESAS_POR_BANCO={
+            imovel:{
+                santander:{avaliacaoResidencial:1950,avaliacaoComercial:3300,fonte:'Santander: teto público de avaliação de imóvel residencial R$ 1.950 e comercial R$ 3.300; a tarifa efetiva pode ser menor.'}
+            },
+            auto:{
+                pan:{avaliacao:650,cadastro:850,fonte:'PAN: valores retirados de exemplo publicado pelo banco (R$ 650 avaliação; R$ 850 cadastro quando aplicável); não são cotação nem obrigação universal.'}
+            }
+        };
+        const arredondarCustoFin=v=>Math.round(Math.max(0,v)*100)/100;
+        function aplicarEncargosAutomaticosFinanciamento(){
+            const doc=document,porId=id=>doc.getElementById(id);
+            const produto=porId('produto').value,ativo=porId('encargosAutomaticosFin').checked;
+            if(!ativo){
+                porId('notaBaseEncargosFin').textContent='Modo manual: valores mantidos conforme preenchimento. Confira custos e seguros não informados; zero não significa isenção.';
+                return;
+            }
+            const banco=produto==='imovel'?porId('bancoFin').value:
+                ['auto','luxo'].includes(produto)?porId('bancoAuto').value:
+                ['pesados','maquinario','embarcacao'].includes(produto)?porId('bancoEspecial').value:'manual';
+            const credito=Math.max(0,parseMoeda(porId('credito').value));
+            const entrada=Math.max(0,Math.min(100,num('entradaPct',0)));
+            const principal=Math.max(0,credito*(1-entrada/100));
+            for(const id of CAMPOS_ENCARGOS_FIN)porId(id).value='0';
+            let explicacao='';
+            if(produto==='imovel'){
+                const tipo=porId('tipoImovelFin').value;
+                const perfil=REFERENCIAS_DESPESAS_POR_BANCO.imovel[banco];
+                const avaliacao=perfil?(tipo==='comercial'?perfil.avaliacaoComercial:perfil.avaliacaoResidencial):1500;
+                porId('tarifaAvaliacaoFin').value=arredondarCustoFin(avaliacao).toFixed(2);
+                // Hipóteses para visualização, NÃO coeficientes divulgados por banco ou seguradora.
+                // Prêmios efetivos dependem da idade, composição da renda, apólice e avaliação.
+                porId('seguroMIPFin').value=arredondarCustoFin(principal*0.00020).toFixed(2);
+                porId('seguroDFIFin').value=arredondarCustoFin(credito*0.00006).toFixed(2);
+                if(tipo==='sfh')porId('tarifaAdmMensalFin').value='25.00';
+                explicacao=(perfil?perfil.fonte:'Avaliação de R$ 1.500 é PREMISSA GENÉRICA para planejamento, NÃO tarifa publicada do banco selecionado.')+
+                    ' MIP de 0,020% ao mês sobre o crédito financiado e DFI de 0,006% ao mês sobre o valor do bem são HIPÓTESES genéricas, não preços de apólice; variam com idade, saldo, risco e seguradora.'+
+                    (tipo==='sfh'?' Administração de R$ 25/mês é uma premissa SFH baseada em referências públicas; confirme se incide no contrato.':' Tarifa administrativa mensal não estimada para esta modalidade.');
+            }else if(['auto','luxo','moto'].includes(produto)){
+                const perfil=REFERENCIAS_DESPESAS_POR_BANCO.auto[banco];
+                porId('tarifaAvaliacaoFin').value=perfil?String(perfil.avaliacao.toFixed(2)):'650.00';
+                if(perfil)porId('tarifaCadastroFin').value=perfil.cadastro.toFixed(2);
+                explicacao=(perfil?perfil.fonte:'Avaliação de R$ 650 é PREMISSA GENÉRICA, não tarifa publicada para este banco. Cadastro/registro dependem do contrato e do relacionamento; zero é valor não identificado, não isenção.')+
+                    ' Seguros prestamista e do veículo não foram adicionados automaticamente por serem opcionais na operação usual e dependerem de aceitação e cotação; inclua-os se contratados.';
+            }else{
+                explicacao='Não existe tabela pública comparável de tarifas e seguros para todas as operações desta categoria. Auto preenchimento limitado: confirme o valor de cada custo na proposta; R$ 0 indica pendência, NÃO isenção.';
+            }
+            explicacao+=' Despesas de cartório/registro e tributos sobre transmissão (quando cabíveis) continuam sob consulta, pois variam conforme localidade e operação. Estes totais são PARCIAIS até a confirmação.';
+            porId('notaBaseEncargosFin').textContent='Banco: '+(banco||'personalizado')+'. '+explicacao;
+        }
+        function alterarEncargosAutomaticosFin(){
+            aplicarEncargosAutomaticosFinanciamento();
+            atualizarVisibilidadeEncargosFinanciamento();
+            calcular();
+        }
+        function alterarTipoImovelFin(){
+            const tipo=document.getElementById('tipoImovelFin').value;
+            document.getElementById('iofModoFin').value=tipo==='comercial'?'manual':'isento';
+            aplicarEncargosAutomaticosFinanciamento();
+            atualizarVisibilidadeEncargosFinanciamento();
+            calcular();
+        }
         function prepararEncargosFinanciamento(){
             const produto=document.getElementById('produto').value;
+            document.getElementById('tipoImovelFin').value='sfh';
+            document.getElementById('encargosAutomaticosFin').checked=true;
             document.getElementById('iofModoFin').value=produto==='imovel'?'isento':
                 ['auto','moto','luxo'].includes(produto)?'auto_pf':'manual';
-            for(const id of CAMPOS_ENCARGOS_FIN)document.getElementById(id).value='0';
             document.getElementById('financiarEncargosFin').checked=false;
+            aplicarEncargosAutomaticosFinanciamento();
             atualizarVisibilidadeEncargosFinanciamento();
         }
         function atualizarVisibilidadeEncargosFinanciamento(){
             const produto=document.getElementById('produto').value;
             const imovel=produto==='imovel';
             const modo=document.getElementById('iofModoFin').value;
+            document.getElementById('blocoTipoImovelFin').style.display=imovel?'block':'none';
             document.getElementById('blocoSegurosHabitacionaisFin').style.display=imovel?'grid':'none';
             document.getElementById('blocoSegurosVeiculoFin').style.display=imovel?'none':'grid';
             document.getElementById('blocoIOFManualFin').style.display=modo==='manual'?'block':'none';
             const nota=document.getElementById('notaIOFFin');
             if(modo==='isento'){
-                nota.textContent=imovel?'IOF zero somente quando o financiamento se enquadrar na isenção habitacional. Imóvel comercial e outras operações podem ter incidência; confira o contrato.'
+                nota.textContent=imovel?'Crédito para fins habitacionais enquadrados é isento de IOF SOBRE O CRÉDITO. Esta isenção não elimina MIP, DFI, avaliação, registro ou tarifas aplicáveis. Confira o enquadramento.'
                   :'IOF zero selecionado manualmente. Verifique se a operação realmente é isenta ou não sujeita ao imposto.';
             }else if(modo==='auto_pf'){
                 nota.textContent='Estimativa para crédito PF tributável: 0,38% adicional + 0,0082% ao dia sobre amortizações de principal (máximo 365 dias por parcela; mês médio de 30 dias). Não é valor oficial da proposta; não usar para crédito PJ.';
@@ -1370,7 +1444,8 @@
           'indiceOficial','taxaOficial','anosIndice','vincularPrazoPatrimonial','mesRetiradaIndice',
           'valorizacaoIndice','iofModoFin','iofManualFin','seguroMIPFin','seguroDFIFin',
           'seguroPrestamistaFin','seguroBemFin','tarifaAvaliacaoFin','tarifaCadastroFin',
-          'registroFin','outrasTarifasFin','tarifaAdmMensalFin','financiarEncargosFin'
+          'registroFin','outrasTarifasFin','tarifaAdmMensalFin','financiarEncargosFin',
+          'encargosAutomaticosFin','tipoImovelFin'
         ];
         // A personalização e o compartilhamento são iguais para o administrador e para qualquer consultor.
         function limparLinkCompartilhado(){
