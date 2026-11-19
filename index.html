@@ -1095,7 +1095,7 @@
             document.getElementById('valEntradaFin').textContent=`${fmt(valorEntrada)} (${fmtPct(valorEntradaPct)})`;
             document.getElementById('valPrincipalFin').textContent=fmt(principalFin);
             document.getElementById('valIOFFin').textContent=fmt(custosFin.iof);
-            document.getElementById('valTarifasFin').textContent=fmt(custosFin.tarifas);
+            document.getElementById('valTarifasFin').textContent=fmt(custosFin.tarifas+custosFin.totalAdministracao);
             document.getElementById('valSaldoFin').textContent=fmt(custosFin.saldoFinanciado);
             document.getElementById('valInicialFin').textContent=fmt(valorEntrada+custosFin.pagoAVista);
             document.getElementById('valParcBanco').textContent=fmt(fin.primeira+custosFin.encargosMensais);
