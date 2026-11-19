@@ -1546,6 +1546,11 @@
           }
           document.getElementById('subBlocoReduzida').style.display=document.getElementById('ativarReduzida').checked?'block':'none';
           atualizarVisibilidadeEncargosFinanciamento();
+          if(q.get('s_encargosAutomaticosFin')===null){
+            if(document.getElementById('encargosAutomaticosFin').checked)aplicarEncargosAutomaticosFinanciamento();
+          }else{
+            document.getElementById('notaBaseEncargosFin').textContent='Valores de encargos recuperados do link compartilhado; são estimativas registradas no momento do envio. Não representam cotação bancária, apólice ou CET. Atualize conforme a proposta.';
+          }
           if(valorProduto==='investimento'){
             if(document.getElementById('indiceOficial').value==='manual')calcularIndice();
             else atualizarIndice();
@@ -1587,8 +1592,14 @@
             document.getElementById('vincularPrazoPatrimonial').addEventListener('change',sincronizarPrazoPatrimonial);
             document.getElementById('mesRetiradaIndice').addEventListener('input',calcularIndice);
             consultarIndices();
-            document.getElementById('entradaPct').addEventListener('input', calcular);
-            document.getElementById('entradaPct').addEventListener('change', calcular);
+            const atualizarCustosEPagamentos=()=>{
+                if(document.getElementById('encargosAutomaticosFin').checked)aplicarEncargosAutomaticosFinanciamento();
+                calcular();
+            };
+            document.getElementById('entradaPct').addEventListener('input',atualizarCustosEPagamentos);
+            document.getElementById('entradaPct').addEventListener('change',atualizarCustosEPagamentos);
+            document.getElementById('credito').addEventListener('input',atualizarCustosEPagamentos);
+            document.getElementById('credito').addEventListener('change',atualizarCustosEPagamentos);
             document.getElementById('prazoFin').addEventListener('input', calcular);
             document.getElementById('prazoFin').addEventListener('change', calcular);
             document.getElementById('ajustarTaxaCenario').addEventListener('change', calcular);
@@ -1602,7 +1613,20 @@
               'sistemaFin',...CAMPOS_ENCARGOS_FIN,'financiarEncargosFin'];
             for(const id of camposImediatos){
                 const el=document.getElementById(id);
-                if(el){el.addEventListener('input',calcular);el.addEventListener('change',calcular);}
+                if(!el)continue;
+                if(CAMPOS_ENCARGOS_FIN.includes(id)){
+                    el.addEventListener('input',()=>{
+                        if(document.getElementById('encargosAutomaticosFin').checked){
+                            document.getElementById('encargosAutomaticosFin').checked=false;
+                            aplicarEncargosAutomaticosFinanciamento();
+                        }
+                        calcular();
+                    });
+                    el.addEventListener('change',calcular);
+                }else{
+                    el.addEventListener('input',calcular);
+                    el.addEventListener('change',calcular);
+                }
             }
             for(const id of ['bancoFin','bancoAuto']){
                 const el=document.getElementById(id);
