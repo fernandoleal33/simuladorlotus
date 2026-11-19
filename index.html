@@ -438,33 +438,31 @@
         </div>
     </div>
 
-<section class="max-w-7xl mx-auto px-4 pb-8">
-  <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5">
-    <h2 class="text-lg font-semibold text-white">Link de apresentação do consultor</h2>
-    <p class="text-sm text-slate-300 my-3">Crie um link com nome e WhatsApp próprios. Os cálculos são os mesmos para todos.</p>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-      <label class="text-sm text-slate-200">Nome<input id="nomeGerador" maxlength="70" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" value="Fernando Leal"></label>
-      <label class="text-sm text-slate-200">WhatsApp com DDD<input id="telefoneGerador" type="tel" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" value="(11) 94766-2843"></label>
-    </div>
-    <div class="flex flex-wrap gap-3 my-3">
-      <button type="button" onclick="gerarLinkConsultor()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg">Gerar link do consultor</button>
-      <button type="button" onclick="copiarLinkConsultor()" class="bg-slate-700 text-white px-4 py-2 rounded-lg">Copiar link</button>
-    </div>
-    <input id="linkGerado" readonly aria-label="Link personalizado" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-slate-200">
-    <p id="avisoGerador" role="status" class="text-sm text-slate-300 mt-2"></p>
-  </div>
-</section>
-<section class="max-w-7xl mx-auto px-4 pb-8" id="compartilharSimulacao">
+<section class="max-w-7xl mx-auto px-4 pb-8" id="compartilharSimulador">
   <div class="bg-slate-800/60 border border-emerald-800/50 rounded-2xl p-5">
-    <h2 class="text-lg font-semibold text-white">Enviar a simulação para o cliente</h2>
-    <p class="text-sm text-slate-300 my-3">Gere um link com o produto, valores, prazo, tabela e lances que configurou. O cliente poderá conferir os resultados e conversar com o consultor. Nenhum documento pessoal é incluído.</p>
-    <div class="flex flex-wrap gap-3 my-3">
-      <button type="button" onclick="gerarLinkSimulacao()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg">Gerar link da simulação</button>
-      <button type="button" onclick="copiarLinkSimulacao()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg">Copiar link</button>
-      <button type="button" onclick="enviarLinkSimulacaoWhatsApp()" class="border border-emerald-600 text-emerald-200 px-4 py-2 rounded-lg">Compartilhar pelo WhatsApp</button>
+    <h2 class="text-lg font-semibold text-white">Compartilhar SimuladorLotus</h2>
+    <p class="text-sm text-slate-300 my-3">Um único lugar para criar seu link. Seus dados já aparecem preenchidos; você pode alterá-los para outro consultor, se precisar.</p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <label class="text-sm text-slate-200">Nome do consultor
+        <input id="nomeGerador" maxlength="70" autocomplete="name" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" value="Fernando Leal" oninput="limparLinkCompartilhado()">
+      </label>
+      <label class="text-sm text-slate-200">WhatsApp do consultor com DDD
+        <input id="telefoneGerador" type="tel" autocomplete="tel" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" value="(11) 94766-2843" oninput="limparLinkCompartilhado()">
+      </label>
     </div>
-    <input id="linkSimulacaoGerado" readonly aria-label="Link da simulação do cliente" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-slate-200 text-sm" placeholder="Clique em gerar link da simulação">
-    <p id="avisoLinkSimulacao" role="status" aria-live="polite" class="text-sm text-slate-300 mt-2">O link reflete os parâmetros no momento da geração. Não é proposta aprovada nem promessa de contemplação.</p>
+    <label class="block text-sm text-slate-200 mt-4" for="tipoLinkGerador">O que deseja compartilhar?</label>
+    <select id="tipoLinkGerador" onchange="limparLinkCompartilhado()" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white">
+      <option value="simulacao">Simulação atual — com os valores que preenchi</option>
+      <option value="simulador">Simulador — para o cliente preencher do zero</option>
+    </select>
+    <p class="text-xs text-slate-400 mt-2">Para compartilhar valores específicos, configure primeiro a simulação acima. O link carrega os parâmetros e recalcula os resultados ao abrir; não é uma proposta aprovada.</p>
+    <div class="flex flex-wrap gap-3 my-4">
+      <button type="button" onclick="gerarLinkCompartilhamento()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg">Gerar link</button>
+      <button type="button" onclick="copiarLinkCompartilhamento()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg">Copiar link</button>
+      <button type="button" onclick="enviarLinkCompartilhamentoWhatsApp()" class="border border-emerald-600 text-emerald-200 px-4 py-2 rounded-lg">Enviar pelo WhatsApp</button>
+    </div>
+    <input id="linkGerado" readonly aria-label="Link para compartilhar" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-slate-200 text-sm" placeholder="Clique em Gerar link">
+    <p id="avisoGerador" role="status" aria-live="polite" class="text-sm text-slate-300 mt-2">O link usa o nome e WhatsApp acima, inclusive quando você é o administrador.</p>
   </div>
 </section>
     <script>
@@ -1201,23 +1199,6 @@
           const local=numero.slice(2);
           return {nome,numero,formatado:'('+local.slice(0,2)+') '+local.slice(2,-4)+'-'+local.slice(-4)};
         }
-        function gerarLinkConsultor() {
-          const dados=validarConsultor(document.getElementById('nomeGerador').value,document.getElementById('telefoneGerador').value);
-          const saida=document.getElementById('linkGerado');
-          if(!dados){saida.value='';document.getElementById('avisoGerador').textContent='Informe nome e WhatsApp com DDD válidos.';return;}
-          const url=new URL(window.location.origin+window.location.pathname);
-          url.searchParams.set('consultor',dados.nome);
-          url.searchParams.set('whatsapp',dados.numero);
-          saida.value=url.toString();
-          document.getElementById('avisoGerador').textContent='Link pronto para compartilhar.';
-        }
-        async function copiarLinkConsultor(){
-          gerarLinkConsultor();
-          const link=document.getElementById('linkGerado').value;
-          if(!link)return;
-          try{await navigator.clipboard.writeText(link);document.getElementById('avisoGerador').textContent='Link copiado!';}
-          catch(e){window.prompt('Copie seu link:',link);}
-        }
         // Apenas parâmetros financeiros e informações públicas do consultor entram no link.
         const CAMPOS_LINK_SIMULACAO = [
           'credito','prazoConsorcio','prazoFin','planoUnifisa','taxaAdmAnual','fundoReservaPct',
@@ -1227,34 +1208,39 @@
           'indiceOficial','taxaOficial','anosIndice','vincularPrazoPatrimonial','mesRetiradaIndice',
           'valorizacaoIndice'
         ];
-        function criarUrlSimulacaoAtual() {
-          // O link do cliente utiliza o consultor já ativo na página, independentemente
-          // do formulário separado para personalização de outros consultores.
-          const dados=validarConsultor(consultorAtual.nome,consultorAtual.numero)
-            ||validarConsultor(consultorPadrao.nome,consultorPadrao.numero);
-          if(!dados)throw new Error('Não foi possível identificar o contato do consultor.');
-          const url=new URL(window.location.origin+window.location.pathname);
-          url.searchParams.set('consultor',dados.nome);
-          url.searchParams.set('whatsapp',dados.numero);
-          url.searchParams.set('sim','1');
-          url.searchParams.set('produto',document.getElementById('produto').value);
-          for(const id of CAMPOS_LINK_SIMULACAO){
-            const el=document.getElementById(id);
-            if(!el)continue;
-            const valor=el.type==='checkbox'?(el.checked?'1':'0'):String(el.value||'');
-            if(valor.length>80)throw new Error('Há um campo com conteúdo grande demais para compartilhar.');
-            url.searchParams.set('s_'+id,valor);
-          }
-          url.hash='simulador';
-          return url.toString();
+        // A personalização e o compartilhamento são iguais para o administrador e para qualquer consultor.
+        function limparLinkCompartilhado(){
+          document.getElementById('linkGerado').value='';
+          document.getElementById('avisoGerador').textContent='Confira os dados e clique em Gerar link.';
         }
-        function gerarLinkSimulacao() {
-          const saida=document.getElementById('linkSimulacaoGerado');
-          const aviso=document.getElementById('avisoLinkSimulacao');
+        function gerarLinkCompartilhamento(){
+          const saida=document.getElementById('linkGerado');
+          const aviso=document.getElementById('avisoGerador');
           try{
-            calcular();
-            saida.value=criarUrlSimulacaoAtual();
-            aviso.textContent='Link pronto. O cliente verá os mesmos parâmetros e os valores serão recalculados quando abrir.';
+            const dados=validarConsultor(document.getElementById('nomeGerador').value,document.getElementById('telefoneGerador').value);
+            if(!dados)throw new Error('Informe nome e WhatsApp com DDD válidos.');
+            const modo=document.getElementById('tipoLinkGerador').value;
+            if(!['simulacao','simulador'].includes(modo))throw new Error('Selecione o tipo de link.');
+            const url=new URL(window.location.origin+window.location.pathname);
+            url.searchParams.set('consultor',dados.nome);
+            url.searchParams.set('whatsapp',dados.numero);
+            if(modo==='simulacao'){
+              calcular();
+              url.searchParams.set('sim','1');
+              url.searchParams.set('produto',document.getElementById('produto').value);
+              for(const id of CAMPOS_LINK_SIMULACAO){
+                const el=document.getElementById(id);
+                if(!el)continue;
+                const valor=el.type==='checkbox'?(el.checked?'1':'0'):String(el.value||'');
+                if(valor.length>80)throw new Error('Um campo financeiro excedeu o limite do link.');
+                url.searchParams.set('s_'+id,valor);
+              }
+            }
+            url.hash='simulador';
+            saida.value=url.toString();
+            aviso.textContent=modo==='simulacao'
+              ?'Link da simulação pronto: valores e condições selecionados serão exibidos ao abrir.'
+              :'Link do simulador pronto: o cliente poderá preencher uma nova simulação.';
             return saida.value;
           }catch(e){
             saida.value='';
@@ -1262,23 +1248,26 @@
             return '';
           }
         }
-        async function copiarLinkSimulacao() {
-          const link=gerarLinkSimulacao();
+        async function copiarLinkCompartilhamento(){
+          const link=gerarLinkCompartilhamento();
           if(!link)return;
           try{
             if(!navigator.clipboard?.writeText)throw new Error('Área de transferência indisponível.');
             await navigator.clipboard.writeText(link);
-            document.getElementById('avisoLinkSimulacao').textContent='Link da simulação copiado. Pronto para enviar ao cliente.';
+            document.getElementById('avisoGerador').textContent='Link copiado. Pronto para enviar.';
           }catch(e){
-            window.prompt('Copie o link da simulação abaixo:',link);
-            document.getElementById('avisoLinkSimulacao').textContent='Selecione e copie o endereço exibido, se necessário.';
+            window.prompt('Copie o link abaixo:',link);
+            document.getElementById('avisoGerador').textContent='Copie o endereço exibido no campo, se necessário.';
           }
         }
-        function enviarLinkSimulacaoWhatsApp(){
-          const link=gerarLinkSimulacao();
+        function enviarLinkCompartilhamentoWhatsApp(){
+          const link=gerarLinkCompartilhamento();
           if(!link)return;
-          const texto='Olá! Segue sua simulação ilustrativa no SimuladorLotus. Abra o link para conferir os valores e as condições estimadas: '+link;
-          // Sem destinatário fixo: o consultor escolhe o contato do cliente.
+          const modo=document.getElementById('tipoLinkGerador').value;
+          const texto=modo==='simulacao'
+            ?'Olá! Segue sua simulação ilustrativa no SimuladorLotus. Confira os valores e as condições estimadas: '+link
+            :'Olá! Acesse o SimuladorLotus para fazer uma simulação ilustrativa e conhecer as possibilidades: '+link;
+          // Sem número de destino fixo: o usuário escolhe o cliente no WhatsApp.
           window.open('https://api.whatsapp.com/send?text='+encodeURIComponent(texto),'_blank','noopener,noreferrer');
         }
         function aplicarSimulacaoCompartilhada() {
@@ -1319,7 +1308,8 @@
             else atualizarIndice();
           }
           calcular();
-          document.getElementById('avisoLinkSimulacao').textContent='Simulação compartilhada carregada. Os valores são ilustrativos e podem variar conforme as condições atualizadas.';
+          document.getElementById('tipoLinkGerador').value='simulacao';
+          document.getElementById('avisoGerador').textContent='Simulação compartilhada carregada. Os valores são ilustrativos e podem variar conforme as condições atualizadas.';
         }
         function aplicarConsultor(){
           const q=new URLSearchParams(window.location.search);
@@ -1337,7 +1327,7 @@
           document.title='SimuladorLotus | '+d.nome+' — Consórcio e Financiamento';
           document.getElementById('nomeGerador').value=d.nome;
           document.getElementById('telefoneGerador').value=d.formatado;
-          gerarLinkConsultor();
+          document.getElementById('linkGerado').value='';
         }
         window.onload = () => {
             aplicarConsultor();
