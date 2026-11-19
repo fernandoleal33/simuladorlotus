@@ -1160,10 +1160,10 @@
         const consultorPadrao = {nome:'Fernando Leal',numero:'5511947662843'};
         let consultorAtual = { ...consultorPadrao,formatado:'(11) 94766-2843'};
         function validarConsultor(nome, telefone) {
-          nome=String(nome||'').trim().replace(/\\s+/g,' ');
-          let numero=String(telefone||'').replace(/\\D/g,'');
+          nome=String(nome||'').trim().replace(/\s+/g,' ');
+          let numero=String(telefone||'').replace(/\D/g,'');
           if(numero.length===10||numero.length===11) numero='55'+numero;
-          if(nome.length<2||nome.length>70||/[<>]/.test(nome)||!/^55\\d{10,11}$/.test(numero)) return null;
+          if(nome.length<2||nome.length>70||/[<>]/.test(nome)||!/^55\d{10,11}$/.test(numero)) return null;
           const local=numero.slice(2);
           return {nome,numero,formatado:'('+local.slice(0,2)+') '+local.slice(2,-4)+'-'+local.slice(-4)};
         }
