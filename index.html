@@ -478,7 +478,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="mt-4 bg-emerald-950/30 border border-emerald-800/50 p-4 rounded-xl text-xs text-emerald-300 leading-relaxed" id="textoDiferencas">
+                    <div class="mt-4 bg-slate-900/70 border border-slate-700 p-5 rounded-2xl text-sm text-slate-200 leading-relaxed" id="textoDiferencas">
                         <strong>Resumo da Diferença:</strong> O comparativo demonstra a economia expressiva ao optar pelo consórcio em vez de financiar no banco.
                     </div>
                 </div>
@@ -1283,15 +1283,44 @@
             const diffLabel=diferenca>=0?'desembolso nominal estimado menor no consórcio':'desembolso nominal estimado menor no financiamento';
             const diffText=fmt(Math.abs(diferenca));
             const reducaoText=modoAbate==='prazo'?`O lance reduz aproximadamente ${reducaoMeses} mês(es) do período restante, mantendo a parcela pós-contemplação estimada em ${fmt(parcelaPos)}.`:`O lance é distribuído pelos ${prazoRestante} mês(es) restantes, levando a parcela pós-contemplação estimada a ${fmt(parcelaPos)}.`;
-            const resumo=`<strong>Resumo da simulação (valores nominais, sem reajuste futuro):</strong><br>`+
-              `• Crédito contratado: <strong>${fmt(credito)}</strong>; crédito líquido após lance embutido: <strong>${fmt(creditoLiquido)}</strong>.<br>`+
-              `• Composição estimada do plano: crédito ${fmt(credito)} + administração ${fmt(totalAdm)} (${fmtPct(taxaAdmPct)}) + reserva ${fmt(totalReserva)} (${fmtPct(reservaPct)}) + seguro estimado ${fmt(totalSeguro)} = <strong>${fmt(totalPlano)}</strong>.<br>`+
-              `• Antes da contemplação: ${mesesAntes} mês(es); parcelas calculadas por fase, com total pago de ${fmt(pagoAntes)}. Lance próprio aplicado: ${fmt(lanceProprioAplicado)}; lance embutido aplicado: ${fmt(embutidoAplicado)}.<br>`+
-              `• ${reducaoText}<br>`+
-              `• Desembolso estimado no consórcio (parcelas + lance com recursos próprios): <strong>${fmt(desembolsoCons)}</strong>.<br>`+
-              `• Financiamento ${sistema.toUpperCase()}: entrada ${fmt(valorEntrada)}, saldo financiado ${fmt(custosFin.saldoFinanciado)}, parcelas ${fmt(totalParcelasFin)} e desembolso total ${fmt(custoFin)}. Os encargos estão no quadro do financiamento.<br>`+
-              `• Diferença nominal: <strong>${diffText}</strong> (${diffLabel}). Essa comparação não representa equivalência perfeita de prazo, disponibilidade imediata ou poder de compra.`+
-              (aviso.length?`<br><br><strong>Atenção:</strong><br>• ${aviso.join('<br>• ')}`:'');
+            const itemResumo=(titulo,valor,cor='text-white')=>`<div class="bg-slate-800/70 rounded-xl p-3 border border-slate-700/70"><p class="text-xs text-slate-400 mb-1">${titulo}</p><p class="text-base sm:text-lg font-semibold ${cor} break-words">${valor}</p></div>`;
+            const detalheResumo=(rotulo,valor)=>`<div class="flex flex-wrap justify-between gap-2 py-2 border-b border-slate-700/70"><span class="text-slate-400">${rotulo}</span><strong class="text-slate-100 text-right">${valor}</strong></div>`;
+            const resumo=`
+              <div class="space-y-4">
+                <div><h3 class="text-base sm:text-lg font-semibold text-slate-100">Resumo financeiro</h3><p class="text-xs text-slate-400 mt-1">Valores nominais estimados, sem reajustes futuros.</p></div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  ${itemResumo('Crédito contratado',fmt(credito))}
+                  ${itemResumo('Parcela mensal do consórcio',fmt(parcelaReduzida))}
+                  ${itemResumo('Total estimado do consórcio',fmt(desembolsoCons),'text-emerald-300')}
+                  ${itemResumo('Total estimado do financiamento',fmt(custoFin))}
+                </div>
+                <div class="rounded-xl bg-slate-800/60 border border-slate-700 p-4">
+                  <p class="text-xs text-slate-400">Diferença nominal estimada</p>
+                  <p class="text-xl sm:text-2xl font-bold text-emerald-300 mt-1">${diffText}</p>
+                  <p class="text-sm text-slate-300 mt-1">${diffLabel}.</p>
+                </div>
+                <details class="group border-t border-slate-700 pt-3">
+                  <summary class="cursor-pointer text-sm font-medium text-emerald-300 py-2">Ver composição e detalhes da simulação</summary>
+                  <div class="pt-2 text-sm space-y-1">
+                    ${detalheResumo('Crédito líquido após lance embutido',fmt(creditoLiquido))}
+                    ${detalheResumo('Administração ('+fmtPct(taxaAdmPct)+')',fmt(totalAdm))}
+                    ${detalheResumo('Fundo de reserva ('+fmtPct(reservaPct)+')',fmt(totalReserva))}
+                    ${detalheResumo('Seguro estimado do consórcio',fmt(totalSeguro))}
+                    ${detalheResumo('Composição nominal do plano',fmt(totalPlano))}
+                    ${detalheResumo('Meses antes da contemplação hipotética',String(mesesAntes))}
+                    ${detalheResumo('Parcelas pagas até a contemplação hipotética',fmt(pagoAntes))}
+                    ${detalheResumo('Lance próprio aplicado',fmt(lanceProprioAplicado))}
+                    ${detalheResumo('Lance embutido aplicado',fmt(embutidoAplicado))}
+                    <p class="text-slate-300 py-2">${reducaoText}</p>
+                    ${detalheResumo('Financiamento '+sistema.toUpperCase()+' — entrada',fmt(valorEntrada))}
+                    ${detalheResumo('Saldo financiado (inclui encargos financiados)',fmt(custosFin.saldoFinanciado))}
+                    ${detalheResumo('Total das parcelas do financiamento',fmt(totalParcelasFin))}
+                    <p class="text-xs text-slate-400 pt-2">Encargos detalhados no quadro do financiamento.</p>
+                    ${aviso.length?`<p class="text-amber-200 pt-2"><strong>Atenção:</strong> ${aviso.join(' • ')}</p>`:''}
+                  </div>
+                </details>
+                <p class="text-xs text-slate-400">A comparação não equivale a prazos, disponibilidade imediata ou poder de compra idênticos. A contemplação não é garantida.</p>
+              </div>`;
             document.getElementById('textoDiferencas').innerHTML=resumo;
             // Mantém a área antiga de investimento oculta: projeções de valorização/aluguel não são retorno garantido.
             document.getElementById('blocoExplicacaoInvestimento').style.display='none';
