@@ -108,8 +108,8 @@ for(const [banco,taxa] of Object.entries({
 assert.notEqual(taxasImovel.caixa,taxasImovelReguladas.caixa,'Mercado e reguladas não devem usar a mesma tabela');
 assert.match(html,/const TAXA_REFERENCIA_COMERCIAL_PF = 12\.15/);
 assert.match(html,/id="notaModalidadeImovel"/);
-assert.match(html,/Para morar — crédito com regras habitacionais/);
-assert.match(html,/Para morar — condições de mercado/);
+assert.match(html,/value="residencial">Imóvel residencial/);
+assert.match(html,/value="comercial">Imóvel comercial/);
 for(const [banco,taxa] of Object.entries({
  santander:24.36,itau:27.74,pan:41.85,bv:30.82,bradesco:22.17,safra:22.22
 })) assert.equal(taxasAuto[banco],taxa,'Veículo '+banco);
@@ -130,7 +130,7 @@ assert.ok(iniImovel>0&&fimImovel>iniImovel);
 const camposImovel=new Map([
  ['produto',{value:'imovel'}],
  ['bancoFin',{value:'caixa',selectedOptions:[{text:'Caixa'}]}],
- ['tipoImovelFin',{value:'sfh'}],
+ ['tipoImovelFin',{value:'residencial'}],
  ['jurosBanco',{value:''}],
  ['notaBanco',{textContent:''}],
  ['notaModalidadeImovel',{textContent:''}],
@@ -146,7 +146,7 @@ const ctxImovel=vm.createContext({
  aplicarEncargosAutomaticosFinanciamento:()=>{}
 });
 vm.runInContext(html.slice(iniImovel,fimImovel),ctxImovel);
-for(const [modalidade,tabela] of [['sfh',taxasImovelReguladas],['sfi',taxasImovel]]){
+for(const [modalidade,tabela] of [['residencial',taxasImovel],['comercial',taxasImovel]]){
  camposImovel.get('tipoImovelFin').value=modalidade;
  for(const [banco,taxa] of Object.entries(tabela)){
   camposImovel.get('bancoFin').value=banco;
@@ -160,10 +160,10 @@ camposImovel.get('bancoFin').value='santander';
 camposImovel.get('bancoFin').selectedOptions[0].text='Santander';
 camposImovel.get('ajustarTaxaCenario').checked=true;
 ctxImovel.selecionarBanco();
-assert.equal(Number(camposImovel.get('jurosBanco').value),12.15);
-assert.equal(camposImovel.get('ajustarTaxaCenario').checked,false);
-assert.match(camposImovel.get('notaBanco').textContent,/NÃO é taxa de financiamento comercial/);
-assert.match(camposImovel.get('notaModalidadeImovel').textContent,/só uma referência geral/);
+assert.equal(Number(camposImovel.get('jurosBanco').value),taxasImovel.santander);
+assert.equal(camposImovel.get('ajustarTaxaCenario').checked,true);
+assert.match(camposImovel.get('notaBanco').textContent,/taxa média de mercado por banco/);
+assert.match(camposImovel.get('notaModalidadeImovel').textContent,/referência ilustrativa/);
 console.log('Referências distintas de moradia e comercial, 8 bancos e textos simples verificados.');
 
 // Teste real da seleção das linhas, incluindo a visibilidade do seletor.
@@ -252,7 +252,7 @@ const camposEncargos=new Map([
  ['bancoFin',{value:'santander'}],
  ['bancoAuto',{value:'pan'}],
  ['bancoEspecial',{value:'manual'}],
- ['tipoImovelFin',{value:'sfh'}],
+ ['tipoImovelFin',{value:'residencial'}],
  ['perfilTomadorFin',{value:'pf'}],
  ['modalidadeEmprestimo',{value:'home'}],
  ['encargosAutomaticosFin',{checked:false}],
@@ -345,12 +345,9 @@ assert.ok(ctxEncargos.calcularEncargosFinanciamento('imovel',240000,12,360,'sac'
 assert.equal(camposEncargos.get('seguroMIPFin').value,'0','Comercial não atribui MIP habitacional');
 assert.equal(camposEncargos.get('seguroDFIFin').value,'0','Comercial não atribui DFI habitacional');
 assert.equal(camposEncargos.get('tarifaAvaliacaoFin').value,'3300.00');
-camposEncargos.get('tipoImovelFin').value='sfi';
+camposEncargos.get('tipoImovelFin').value='residencial';
 ctxEncargos.alterarTipoImovelFin();
-assert.equal(camposEncargos.get('iofModoFin').value,'isento','Habitação SFI elegível');
-camposEncargos.get('tipoImovelFin').value='sfh';
-ctxEncargos.alterarTipoImovelFin();
-assert.equal(camposEncargos.get('iofModoFin').value,'isento','Habitação SFH elegível');
+assert.equal(camposEncargos.get('iofModoFin').value,'isento','Habitação residencial elegível');
 camposEncargos.get('produto').value='capital_giro';
 camposEncargos.get('modalidadeEmprestimo').value='home';
 camposEncargos.get('perfilTomadorFin').value='pf';
@@ -434,7 +431,7 @@ const camposLink=new Map([
  ['tarifaAvaliacaoFin',{value:'500',type:'number'}],
  ['financiarEncargosFin',{checked:true,type:'checkbox'}],
  ['encargosAutomaticosFin',{checked:true,type:'checkbox'}],
- ['tipoImovelFin',{value:'sfh',tagName:'SELECT',options:[{value:'sfh'},{value:'sfi'},{value:'comercial'}]}],
+ ['tipoImovelFin',{value:'residencial',tagName:'SELECT',options:[{value:'residencial'},{value:'comercial'}]}],
  ['perfilTomadorFin',{value:'pf',tagName:'SELECT',options:[{value:'pf'},{value:'pj'}]}],
  ['notaBaseEncargosFin',{textContent:''}]
 ]);
@@ -473,7 +470,7 @@ assert.equal(enderecoGerado.searchParams.get('s_seguroPrestamistaFin'),'100');
 assert.equal(enderecoGerado.searchParams.get('s_tarifaAvaliacaoFin'),'500');
 assert.equal(enderecoGerado.searchParams.get('s_financiarEncargosFin'),'1');
 assert.equal(enderecoGerado.searchParams.get('s_encargosAutomaticosFin'),'1');
-assert.equal(enderecoGerado.searchParams.get('s_tipoImovelFin'),'sfh');
+assert.equal(enderecoGerado.searchParams.get('s_tipoImovelFin'),'residencial');
 assert.equal(enderecoGerado.searchParams.get('s_perfilTomadorFin'),'pf');
 assert.equal(enderecoGerado.hash,'#simulador');
 assert.ok(!enderecoGerado.toString().includes('CPF'),'Não compartilhar documentos pessoais');
@@ -501,7 +498,7 @@ assert.equal(camposLink.get('seguroPrestamistaFin').value,'100');
 assert.equal(camposLink.get('tarifaAvaliacaoFin').value,'500');
 assert.equal(camposLink.get('financiarEncargosFin').checked,true);
 assert.equal(camposLink.get('encargosAutomaticosFin').checked,true);
-assert.equal(camposLink.get('tipoImovelFin').value,'sfh');
+assert.equal(camposLink.get('tipoImovelFin').value,'residencial');
 assert.equal(camposLink.get('perfilTomadorFin').value,'pf');
 assert.equal(calculosCompartilhamento,3,'Recalcula cenário na abertura');
 camposLink.get('tipoLinkGerador').value='simulador';
