@@ -178,6 +178,7 @@
   <section class="fl-hero" aria-labelledby="lp-title">
     <div class="fl-hero-inner">
       <div>
+        <div id="perfilFernando" style="margin-bottom:20px"><div style="display:flex;align-items:center;gap:14px"><img src="./WhatsApp%20Image%202026-11-24%20at%2013.07.50.jpeg" alt="Foto do consultor" width="88" height="88" style="width:88px;height:88px;flex:none;border-radius:50%;object-fit:cover;object-position:center 30%;border:2px solid var(--gold,#c6a66b)"><div><strong style="display:block;font-size:18px">Fernando Leal</strong><span style="color:var(--gold,#c6a66b);font-size:13px">Personal Banker</span></div></div></div>
         <span class="fl-eyebrow">Planejamento financeiro e patrimonial</span>
         <h1 id="lp-title">Planejamento que começa <em>por você.</em></h1>
         <p>Decisões financeiras com visão de longo prazo. Entenda seu cenário, compare alternativas e planeje aquisições, crescimento empresarial ou construção patrimonial com mais clareza.</p>
@@ -1854,6 +1855,7 @@
           const papel=(d.nome===consultorPadrao.nome&&d.numero===consultorPadrao.numero)?'Personal Banker':'Consultor';
           document.getElementById('papelMarca').textContent='| '+papel.toLocaleUpperCase('pt-BR');
           document.getElementById('papelRodape').textContent=papel;
+          document.getElementById('perfilFernando').hidden=papel!=='Personal Banker';
           document.getElementById('whatsappJornada').href='https://wa.me/'+d.numero+'?text='+encodeURIComponent('Olá, '+d.nome+'! Gostaria de conversar sobre meu planejamento.');
           document.getElementById('nomeCabecalho').textContent=d.nome;
           document.getElementById('nomeRodape').textContent=d.nome;
