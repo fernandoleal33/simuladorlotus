@@ -1688,11 +1688,17 @@
                 prod.value=d.produto; preencherOpcoesTabela(); mudarProduto();
                 document.getElementById('credito').value=d.meta.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
                 aplicarTabelaUnifisa();
+                const recursos=Math.max(0,Number(d.capital)||0);
+                const entrada=document.getElementById('entradaPct');
+                const percentual=Math.min(100,recursos/d.meta*100);
+                entrada.max='100';entrada.step='any';entrada.value=String(percentual);
+                document.getElementById('lanceLivre').value=recursos.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+                document.getElementById('lanceEmbutidoPct').value='0';
                 if(document.getElementById('encargosAutomaticosFin').checked)aplicarEncargosAutomaticosFinanciamento();
                 calcular();
                 const note=document.createElement('div');note.className='bg-slate-800 border border-slate-700 rounded-xl p-3 mb-4 text-sm';
                 const money=n=>Number(n).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-                note.textContent='Lotus Planner • '+d.objetivo+' | Recursos disponíveis: '+money(d.capital)+' | Parcela desejada: '+money(d.aporte)+' | Aquisição: '+d.periodo+' | Prioridade: '+d.prioridade+'. Recursos e prazo são referências, não entrada, lance ou prazo contratual.';
+                note.textContent='Lotus Planner • '+d.objetivo+' | Recursos disponíveis: '+money(d.capital)+' | Parcela desejada: '+money(d.aporte)+' | Aquisição: '+d.periodo+' | Prioridade: '+d.prioridade+'. Recursos preenchidos como lance livre e entrada simulada, ambos editáveis. Prazo de aquisição e parcela desejada são referências; não garantem contemplação ou aprovação.';
                 document.getElementById('simulador').appendChild(note);
                 document.getElementById('simulador').scrollIntoView();
               }
