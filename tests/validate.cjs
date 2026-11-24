@@ -393,7 +393,12 @@ for(const id of ['nomeGerador','telefoneGerador','tipoLinkGerador','avisoGerador
 for(const fn of ['gerarLinkCompartilhamento','copiarLinkCompartilhamento','enviarLinkCompartilhamentoWhatsApp','aplicarSimulacaoCompartilhada']){
  assert.match(html,new RegExp('function '+fn+'\\('));
 }
-assert.match(html,/aplicarSimulacaoCompartilhada\(\);\s*\n\s*};/);
+for(const pagina of [html,soraia]){
+ const init=pagina.slice(pagina.indexOf('window.onload = () => {'),pagina.indexOf('</script>',pagina.indexOf('window.onload = () => {')));
+ assert.match(init,/aplicarSimulacaoCompartilhada\(\);[\s\S]*?lotusPlannerHandoff/);
+ assert.match(init,/document\.getElementById\('lanceLivre'\)\.value=recursos/);
+ assert.match(init,/entrada\.value=String\(percentual\)/);
+}
 assert.match(html,/api\.whatsapp\.com\/send\?text=/);
 assert.match(html,/else if\(codigo!=='manual'\)campo\.value=''/);
 const inicioValidadorConsultor=html.indexOf('function validarConsultor(nome, telefone) {');
