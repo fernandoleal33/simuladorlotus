@@ -1681,7 +1681,8 @@
             calcular();
             aplicarSimulacaoCompartilhada();
             try {
-              const raw=sessionStorage.getItem('lotusPlannerHandoff');
+              const fragment=location.hash.startsWith('#lotus=')?decodeURIComponent(location.hash.slice(7)):null;
+              const raw=fragment||sessionStorage.getItem('lotusPlannerHandoff');
               if(new URLSearchParams(location.search).get('planner')==='1' && raw){
                 const d=JSON.parse(raw), prod=document.getElementById('produto');
                 if(!Array.from(prod.options).some(o=>o.value===d.produto)||!Number.isFinite(d.meta)||d.meta<=0) return;
@@ -1700,6 +1701,7 @@
                 const money=n=>Number(n).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
                 note.textContent='Lotus Planner • '+d.objetivo+' | Recursos disponíveis: '+money(d.capital)+' | Parcela desejada: '+money(d.aporte)+' | Aquisição: '+d.periodo+' | Prioridade: '+d.prioridade+'. Recursos preenchidos como lance livre e entrada simulada, ambos editáveis. Prazo de aquisição e parcela desejada são referências; não garantem contemplação ou aprovação.';
                 document.getElementById('simulador').appendChild(note);
+                history.replaceState(null,'',location.pathname+location.search+'#simulador');
                 document.getElementById('simulador').scrollIntoView();
               }
             }catch(e){console.warn('Dados do Planner indisponíveis',e);}
