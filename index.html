@@ -16,6 +16,16 @@
     <style>body { font-family: 'Inter', sans-serif; }</style>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen">
+<script>
+  // O endereço principal abre a apresentação. Links diretos e retornos do Planner
+  // abrem o simulador automaticamente, sem alterar os cálculos.
+  if (location.hash === '#simulador' ||
+      location.hash.startsWith('#lotus=') ||
+      new URLSearchParams(location.search).get('planner') === '1' ||
+      new URLSearchParams(location.search).get('sim') === '1') {
+    document.documentElement.classList.add('lotus-sim-open');
+  }
+</script>
 
 <style>
   :root { --navy:#071a33; --navy2:#0d2b50; --gold:#f4c542; --ink:#14243a; }
@@ -101,6 +111,12 @@
 
 <style>
   /* Integração da apresentação, Lotus Planner e SimuladorLotus — Fernando Leal */
+  html:not(.lotus-sim-open) #simulador,
+  html:not(.lotus-sim-open) #simuladorConteudo,
+  html:not(.lotus-sim-open) .fl-install,
+  html:not(.lotus-sim-open) .fl-disclaimer {display:none!important}
+  .lp-return {display:inline-block;margin:4px 0 14px;color:#dfbd78;font-size:13px;text-decoration:none;font-weight:700}
+  .lp-return:hover {text-decoration:underline}
   .lp-intro {background:#07182c;color:#eaf1fa}
   .lp-intro .fl-nav {position:relative;background:#091b31;border-color:#28415d}
   .lp-intro .fl-navlinks {gap:17px}
@@ -225,14 +241,36 @@
     </div>
     <p style="font-size:12px;margin-top:16px">Outras modalidades estão disponíveis no simulador. Crédito e contemplação dependem das condições e regras aplicáveis.</p>
   </section>
+<script>
+  // Navegação progressiva, preservando acesso direto a #simulador.
+  function mostrarSimuladorLotus() {
+    document.documentElement.classList.add('lotus-sim-open');
+  }
+  document.addEventListener('click', event => {
+    const link = event.target.closest && event.target.closest('a[href="#simulador"]');
+    if (link) {
+      event.preventDefault();
+      mostrarSimuladorLotus();
+      if (location.hash !== '#simulador') history.pushState(null, '', '#simulador');
+      requestAnimationFrame(() => document.getElementById('simulador').scrollIntoView({behavior:'smooth',block:'start'}));
+    }
+    if (event.target.closest && event.target.closest('#voltarApresentacao')) {
+      document.documentElement.classList.remove('lotus-sim-open');
+    }
+  });
+  window.addEventListener('hashchange', () => {
+    if (location.hash === '#simulador') mostrarSimuladorLotus();
+  });
+</script>
   <div class="fl-simulator-intro" id="simulador">
+    <a href="#inicio" class="lp-return" id="voltarApresentacao">← Voltar para a apresentação</a>
     <span class="lp-kicker">SimuladorLotus</span>
     <h2>Compare alternativas com clareza</h2>
     <p>Você pode simular diretamente ou chegar aqui depois do Lotus Planner, aproveitando o objetivo e os valores informados no diagnóstico.</p>
   </div>
 </div>
 
-    <div class="max-w-7xl mx-auto px-4 py-8">
+    <div id="simuladorConteudo" class="max-w-7xl mx-auto px-4 py-8">
         <!-- Header -->
         <header class="mb-8 border-b border-slate-800 pb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
@@ -896,6 +934,7 @@
             window.open('https://wa.me/'+consultorAtual.numero+'?text='+encodeURIComponent(mensagem),'_blank','noopener');
         }
         function abrirSolucao(produto) {
+          document.documentElement.classList.add('lotus-sim-open');
             const seletor=document.getElementById('produto');
             if(!seletor || !Array.from(seletor.options).some(op=>op.value===produto))return;
             seletor.value=produto;
