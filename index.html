@@ -1790,6 +1790,24 @@
             // Atualiza os valores visíveis também no primeiro carregamento.
             calcular();
             aplicarSimulacaoCompartilhada();
+            try {
+              const raw=sessionStorage.getItem('lotusPlannerHandoff');
+              if(new URLSearchParams(location.search).get('planner')==='1' && raw){
+                const d=JSON.parse(raw), prod=document.getElementById('produto');
+                if(!Array.from(prod.options).some(o=>o.value===d.produto)||!Number.isFinite(d.meta)||d.meta<=0) return;
+                prod.value=d.produto; preencherOpcoesTabela(); mudarProduto();
+                document.getElementById('credito').value=d.meta.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+                aplicarTabelaUnifisa();
+                if(document.getElementById('encargosAutomaticosFin').checked)aplicarEncargosAutomaticosFinanciamento();
+                calcular();
+                const note=document.createElement('div');note.className='bg-slate-800 border border-slate-700 rounded-xl p-3 mb-4 text-sm';
+                const money=n=>Number(n).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+                note.textContent='Lotus Planner • '+d.objetivo+' | Recursos disponíveis: '+money(d.capital)+' | Parcela desejada: '+money(d.aporte)+' | Aquisição: '+d.periodo+' | Prioridade: '+d.prioridade+'. Recursos e prazo são referências, não entrada, lance ou prazo contratual.';
+                document.getElementById('simulador').appendChild(note);
+                document.getElementById('simulador').scrollIntoView();
+              }
+            }catch(e){console.warn('Dados do Planner indisponíveis',e);}
+
         };
 
     </script>
