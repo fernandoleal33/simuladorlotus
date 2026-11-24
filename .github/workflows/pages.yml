@@ -11,14 +11,11 @@ concurrency:
   group: pages
   cancel-in-progress: true
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Baixar código
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Gerar ícones instaláveis Android e iOS
         run: python3 scripts/generate_icons.py
       - name: Validar parcelas e salvaguardas
@@ -28,9 +25,19 @@ jobs:
         with:
           enablement: true
       - name: Enviar arquivos
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
+          name: github-pages
           path: .
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Publicar
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages
