@@ -6,11 +6,11 @@
     <meta name="theme-color" content="#0f172a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Franco360">
+    <meta name="apple-mobile-web-app-title" content="Leal Finanças">
     <link rel="manifest" href="./manifest.webmanifest">
     <link rel="icon" type="image/svg+xml" href="../icon.svg">
     <link rel="apple-touch-icon" href="../icon-180.png">
-    <title>Franco360 | Consórcio e Financiamento</title>
+    <title>Leal Finanças | Consórcio e Financiamento</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>body { font-family: 'Inter', sans-serif; }</style>
@@ -110,7 +110,7 @@
 </style>
 
 <style>
-  /* Integração da apresentação, Franco Planner e Franco360 — Peterson */
+  /* Integração da apresentação, Leal Finanças e Leal Finanças — Peterson */
   html:not(.lotus-sim-open) #simulador,
   html:not(.lotus-sim-open) #simuladorConteudo,
   html:not(.lotus-sim-open) .fl-install,
@@ -176,8 +176,8 @@
   </aside>
     <div class="fl-navlinks">
       <a href="#apresentacao">Apresentação</a>
-      <a href="../planner/?versao=peterson" style="color:#dfbd78">Franco Planner</a>
-      <a href="#simulador">Franco360</a>
+      <a href="../planner/?versao=peterson" style="color:#dfbd78">Leal Finanças</a>
+      <a href="#simulador">Leal Finanças</a>
       <a id="whatsappNav" class="fl-cta" href="https://wa.me/5511979676411?text=Ol%C3%A1%2C%20Peterson!%20Gostaria%20de%20conversar%20sobre%20planejamento%20financeiro." target="_blank" rel="noopener noreferrer">WhatsApp</a>
     </div>
   </nav>
@@ -189,7 +189,7 @@
         <h1 id="lp-title">Planejamento que começa <em>por você.</em></h1>
         <p>Decisões financeiras com visão de longo prazo. Entenda seu cenário, compare alternativas e planeje aquisições, crescimento empresarial ou construção patrimonial com mais clareza.</p>
         <div class="lp-actions">
-          <a class="fl-cta" href="../planner/?versao=peterson">Começar pelo Franco Planner</a>
+          <a class="fl-cta" href="../planner/?versao=peterson">Começar pelo Leal Finanças</a>
           <a class="lp-alt" href="#simulador">Acessar o simulador diretamente</a>
         </div>
         <div class="lp-hint">Diagnóstico inicial sem compromisso · Simulações ilustrativas</div>
@@ -212,13 +212,13 @@
     <div class="lp-stepgrid">
       <div class="lp-step">
         <span class="lp-step-num">01 · LEVANTAMENTO</span>
-        <h3>Franco Planner</h3>
+        <h3>Leal Finanças</h3>
         <p>Defina seu objetivo, recursos disponíveis, parcela desejada e prazo de aquisição.</p>
         <a href="../planner/?versao=peterson">Iniciar diagnóstico →</a>
       </div>
       <div class="lp-step">
         <span class="lp-step-num">02 · COMPARAÇÃO</span>
-        <h3>Franco360</h3>
+        <h3>Leal Finanças</h3>
         <p>Compare cenários de consórcio e financiamento com parâmetros editáveis.</p>
         <a href="#simulador">Explorar simulador →</a>
       </div>
@@ -251,14 +251,14 @@
   </section>
 <script>
   // Navegação progressiva, preservando acesso direto a #simulador.
-  function mostrarFranco360() {
+  function mostrarLealFinancas() {
     document.documentElement.classList.add('lotus-sim-open');
   }
   document.addEventListener('click', event => {
     const link = event.target.closest && event.target.closest('a[href="#simulador"]');
     if (link) {
       event.preventDefault();
-      mostrarFranco360();
+      mostrarLealFinancas();
       if (location.hash !== '#simulador') history.pushState(null, '', '#simulador');
       requestAnimationFrame(() => document.getElementById('simulador').scrollIntoView({behavior:'smooth',block:'start'}));
     }
@@ -267,14 +267,14 @@
     }
   });
   window.addEventListener('hashchange', () => {
-    if (location.hash === '#simulador') mostrarFranco360();
+    if (location.hash === '#simulador') mostrarLealFinancas();
   });
 </script>
   <div class="fl-simulator-intro" id="simulador">
     <a href="#inicio" class="lp-return" id="voltarApresentacao">← Voltar para a apresentação</a>
-    <span class="lp-kicker">Franco360</span>
+    <span class="lp-kicker">Leal Finanças</span>
     <h2>Compare alternativas com clareza</h2>
-    <p>Você pode simular diretamente ou chegar aqui depois do Franco Planner, aproveitando o objetivo e os valores informados no diagnóstico.</p>
+    <p>Você pode simular diretamente ou chegar aqui depois do Leal Finanças, aproveitando o objetivo e os valores informados no diagnóstico.</p>
   </div>
 </div>
 
@@ -283,7 +283,7 @@
         <header class="mb-8 border-b border-slate-800 pb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
                 <span class="bg-emerald-500/10 text-emerald-400 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider"><span id="nomeCabecalho">Peterson</span> • Consultoria & Vendas</span>
-                <h1 class="text-2xl md:text-3xl font-bold text-white mt-2">Franco360: Consórcio vs Financiamento</h1>
+                <h1 class="text-2xl md:text-3xl font-bold text-white mt-2">Leal Finanças: Consórcio vs Financiamento</h1>
                 <p class="text-slate-400 text-sm mt-1">Diferenciação clara entre Entrada Bancária Obrigatória e Lance/Antecipação no Consórcio.</p>
             </div>
             <div class="bg-slate-800 border border-slate-700 p-3 rounded-xl flex items-center gap-3">
@@ -643,7 +643,7 @@
 
 <section class="max-w-7xl mx-auto px-4 pb-8" id="compartilharSimulador">
   <div class="bg-slate-800/60 border border-emerald-800/50 rounded-2xl p-5">
-    <h2 class="text-lg font-semibold text-white">Compartilhar Franco360</h2>
+    <h2 class="text-lg font-semibold text-white">Compartilhar Leal Finanças</h2>
     <p class="text-sm text-slate-300 my-3">Um único lugar para criar seu link. Seus dados já aparecem preenchidos; você pode alterá-los para outro consultor, se precisar.</p>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
       <label class="text-sm text-slate-200">Nome do consultor
@@ -1800,8 +1800,8 @@
           const dados=validarConsultor(document.getElementById('nomeGerador').value,document.getElementById('telefoneGerador').value);
           const contato=dados?'\n\nConsultor: '+dados.nome+' | WhatsApp: '+dados.formatado:'';
           const texto=(modo==='simulacao'
-            ?'Olá! Segue sua simulação ilustrativa no Franco360. Confira os valores e as condições estimadas: '+link
-            :'Olá! Acesse o Franco360 para fazer uma simulação ilustrativa e conhecer as possibilidades: '+link)+contato;
+            ?'Olá! Segue sua simulação ilustrativa no Leal Finanças. Confira os valores e as condições estimadas: '+link
+            :'Olá! Acesse o Leal Finanças para fazer uma simulação ilustrativa e conhecer as possibilidades: '+link)+contato;
           // O destinatário é selecionado no WhatsApp; o número do consultor fica no link e no texto.
           window.open('https://api.whatsapp.com/send?text='+encodeURIComponent(texto),'_blank','noopener,noreferrer');
         }
@@ -1871,7 +1871,7 @@
           document.getElementById('whatsappNav').href='https://wa.me/'+d.numero+'?text='+encodeURIComponent('Olá, '+d.nome+'! Gostaria de conversar sobre consórcio.');
           document.getElementById('whatsappCabecalho').href='https://wa.me/'+d.numero+'?text='+encodeURIComponent('Olá! Gostaria de saber mais sobre consórcio.');
 
-          document.title='Franco360 | '+d.nome+' — Consórcio e Financiamento';
+          document.title='Leal Finanças | '+d.nome+' — Consórcio e Financiamento';
           document.getElementById('nomeGerador').value=d.nome;
           document.getElementById('telefoneGerador').value=d.formatado;
           document.getElementById('linkGerado').value='';
@@ -1959,7 +1959,7 @@
                 calcular();
                 const note=document.createElement('div');note.className='bg-slate-800 border border-slate-700 rounded-xl p-3 mb-4 text-sm';
                 const money=n=>Number(n).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-                note.textContent='Franco Planner • '+d.objetivo+' | Recursos disponíveis: '+money(d.capital)+' | Parcela desejada: '+money(d.aporte)+' | Aquisição: '+d.periodo+' | Prioridade: '+d.prioridade+'. Recursos preenchidos como lance livre e entrada simulada, ambos editáveis. Prazo de aquisição e parcela desejada são referências; não garantem contemplação ou aprovação.';
+                note.textContent='Leal Finanças • '+d.objetivo+' | Recursos disponíveis: '+money(d.capital)+' | Parcela desejada: '+money(d.aporte)+' | Aquisição: '+d.periodo+' | Prioridade: '+d.prioridade+'. Recursos preenchidos como lance livre e entrada simulada, ambos editáveis. Prazo de aquisição e parcela desejada são referências; não garantem contemplação ou aprovação.';
                 const textoProjeto=typeof d.projeto==='string'?d.projeto.trim().slice(0,600):'';
                 if(textoProjeto){
                   const respostaProjeto=document.createElement('p');
