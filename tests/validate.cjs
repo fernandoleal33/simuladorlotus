@@ -11,7 +11,7 @@ assert.match(soraia,/id="nomeMarca">SORAIA MELLO<\/span> <span>\| GERENTE<\/span
 assert.match(soraia,/id="nomeRodape">Soraia Mello - Gerente<\/span> \| Gerente — Unifisa/);
 assert.match(soraia,/href="\.\.\/manifest.webmanifest"/);
 assert.match(soraia,/navigator.serviceWorker.register\('\.\.\/sw.js'\)/);
-assert.doesNotMatch(soraia,/Fernando Leal|5511947662843|@fernandoconsultorunifisa/);
+assert.doesNotMatch(soraia,/Fernando Leal|5511947662843|5511946772843|@fernandoconsultorunifisa/);
 assert.match(soraia,/value="Soraia Mello - Gerente" readonly/);
 assert.match(soraia,/value="\(11\) 99929-7191" readonly/);
 function compararTrechosMatrizSoraia(inicio,fim){
@@ -407,9 +407,9 @@ assert.ok(inicioValidadorConsultor>=0 && fimValidadorConsultor>inicioValidadorCo
 const contextoValidador=vm.createContext({});
 vm.runInContext(html.slice(inicioValidadorConsultor,fimValidadorConsultor),contextoValidador);
 const validarConsultorReal=contextoValidador.validarConsultor;
-assert.equal(validarConsultorReal('Fernando Leal','(11) 94766-2843')?.numero,'5511947662843');
-assert.equal(validarConsultorReal('Fernando Leal','11947662843')?.numero,'5511947662843');
-assert.equal(validarConsultorReal('Fernando Leal','+55 11 94766-2843')?.numero,'5511947662843');
+assert.equal(validarConsultorReal('Fernando Leal','(11) 94677-2843')?.numero,'5511946772843');
+assert.equal(validarConsultorReal('Fernando Leal','11946772843')?.numero,'5511946772843');
+assert.equal(validarConsultorReal('Fernando Leal','+55 11 94677-2843')?.numero,'5511946772843');
 assert.equal(validarConsultorReal('Consultor Teste','(11) 98888-7777')?.numero,'5511988887777');
 assert.equal(validarConsultorReal('Fernando Leal','número inválido'),null);
 assert.equal(validarConsultorReal('Fernando Leal',''),null);
@@ -418,7 +418,7 @@ const fimLink=html.indexOf('function aplicarConsultor(){',inicioLink);
 assert.ok(inicioLink>0&&fimLink>inicioLink,'Funções de compartilhamento não encontradas');
 const camposLink=new Map([
  ['nomeGerador',{value:'Fernando Leal'}],
- ['telefoneGerador',{value:'(11) 94766-2843'}],
+ ['telefoneGerador',{value:'(11) 94677-2843'}],
  ['tipoLinkGerador',{value:'simulacao',tagName:'SELECT',options:[{value:'simulacao'},{value:'simulador'}]}],
  ['produto',{value:'auto',tagName:'SELECT',options:[{value:'auto'},{value:'imovel'}]}],
  ['credito',{value:'125.000,00',type:'text'}],
@@ -463,7 +463,7 @@ const linkOriginal=ambienteCompartilhamento.gerarLinkCompartilhamento();
 const enderecoGerado=new URL(linkOriginal);
 assert.equal(enderecoGerado.pathname,'/simuladorlotus/');
 assert.equal(enderecoGerado.searchParams.get('consultor'),'Fernando Leal');
-assert.equal(enderecoGerado.searchParams.get('whatsapp'),'5511947662843');
+assert.equal(enderecoGerado.searchParams.get('whatsapp'),'5511946772843');
 assert.equal(enderecoGerado.searchParams.get('sim'),'1');
 assert.equal(enderecoGerado.searchParams.get('produto'),'auto');
 assert.equal(enderecoGerado.searchParams.get('s_credito'),'125.000,00');
@@ -483,8 +483,8 @@ assert.equal(calculosCompartilhamento,1);
 ambienteCompartilhamento.enviarLinkCompartilhamentoWhatsApp();
 assert.match(urlWhatsAppCompartilhamento,/^https:\/\/api\.whatsapp\.com\/send\?text=/);
 const mensagemWhatsAppCompartilhamento=new URL(urlWhatsAppCompartilhamento).searchParams.get('text');
-assert.ok(mensagemWhatsAppCompartilhamento.includes('Consultor: Fernando Leal | WhatsApp: (11) 94766-2843'),'Contato do consultor precisa estar na mensagem');
-assert.ok(mensagemWhatsAppCompartilhamento.includes('whatsapp=5511947662843'),'Contato do consultor precisa estar no link');
+assert.ok(mensagemWhatsAppCompartilhamento.includes('Consultor: Fernando Leal | WhatsApp: (11) 94677-2843'),'Contato do consultor precisa estar na mensagem');
+assert.ok(mensagemWhatsAppCompartilhamento.includes('whatsapp=5511946772843'),'Contato do consultor precisa estar no link');
 camposLink.get('produto').value='imovel';
 camposLink.get('credito').value='300.000,00';
 camposLink.get('planoUnifisa').value='';
@@ -521,7 +521,7 @@ assert.equal(ambienteCompartilhamento.gerarLinkCompartilhamento(),'','Nome vazio
 console.log('Compartilhamento unificado: administrador, outros consultores, cenário e link livre conferidos.');
 
 assert.doesNotMatch(html,/Testar Envio via WhatsApp|id="telefoneBotao"|function enviarWhatsApp\(\)|function copiarProposta\(\)/);
-assert.match(html,/const consultorPadrao = \{nome:'Fernando Leal',numero:'5511947662843'\}/);
+assert.match(html,/const consultorPadrao = \{nome:'Fernando Leal',numero:'5511946772843'\}/);
 assert.match(html,/Consultor: '\+dados\.nome\+' \| WhatsApp: '\+dados\.formatado/);
 assert.match(html,/contemplação no mês escolhido é apenas uma hipótese matemática, nunca uma promessa/i);
 assert.match(html,/Valores estimados; “A confirmar” não integra o total/);
