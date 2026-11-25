@@ -1700,8 +1700,18 @@
                 const note=document.createElement('div');note.className='bg-slate-800 border border-slate-700 rounded-xl p-3 mb-4 text-sm';
                 const money=n=>Number(n).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
                 note.textContent='Lotus Planner • '+d.objetivo+' | Recursos disponíveis: '+money(d.capital)+' | Parcela desejada: '+money(d.aporte)+' | Aquisição: '+d.periodo+' | Prioridade: '+d.prioridade+'. Recursos preenchidos como lance livre e entrada simulada, ambos editáveis. Prazo de aquisição e parcela desejada são referências; não garantem contemplação ou aprovação.';
+                const textoProjeto=typeof d.projeto==='string'?d.projeto.trim().slice(0,600):'';
+                if(textoProjeto){
+                  const respostaProjeto=document.createElement('p');
+                  respostaProjeto.className='mt-3 pt-3 border-t border-slate-600 whitespace-pre-wrap text-slate-100';
+                  respostaProjeto.style.overflowWrap='anywhere';
+                  respostaProjeto.textContent='Projeto que gostaria de tirar do papel: '+textoProjeto;
+                  note.appendChild(respostaProjeto);
+                }
                 document.getElementById('simulador').appendChild(note);
-                history.replaceState(null,'',location.pathname+location.search+'#simulador');
+                try{sessionStorage.removeItem('lotusPlannerHandoff')}catch(err){}
+                const destino=new URL(location.href);destino.searchParams.delete('planner');destino.hash='simulador';
+                history.replaceState(null,'',destino.pathname+destino.search+destino.hash);
                 document.getElementById('simulador').scrollIntoView();
               }
             }catch(e){console.warn('Dados do Planner indisponíveis',e);}
