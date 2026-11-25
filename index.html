@@ -110,7 +110,7 @@
 </style>
 
 <style>
-  /* Integração da apresentação, Lotus Planner e Franco360 — Fernando Leal */
+  /* Integração da apresentação, Franco Planner e Franco360 — Fernando Leal */
   html:not(.lotus-sim-open) #simulador,
   html:not(.lotus-sim-open) #simuladorConteudo,
   html:not(.lotus-sim-open) .fl-install,
@@ -176,7 +176,7 @@
   </aside>
     <div class="fl-navlinks">
       <a href="#apresentacao">Apresentação</a>
-      <a href="./planner/" style="color:#dfbd78">Lotus Planner</a>
+      <a href="./planner/" style="color:#dfbd78">Franco Planner</a>
       <a href="#simulador">Franco360</a>
       <a id="whatsappNav" class="fl-cta" href="https://wa.me/5511947662843?text=Ol%C3%A1%2C%20Fernando!%20Gostaria%20de%20conversar%20sobre%20planejamento%20financeiro." target="_blank" rel="noopener noreferrer">WhatsApp</a>
     </div>
@@ -189,7 +189,7 @@
         <h1 id="lp-title">Planejamento que começa <em>por você.</em></h1>
         <p>Decisões financeiras com visão de longo prazo. Entenda seu cenário, compare alternativas e planeje aquisições, crescimento empresarial ou construção patrimonial com mais clareza.</p>
         <div class="lp-actions">
-          <a class="fl-cta" href="./planner/">Começar pelo Lotus Planner</a>
+          <a class="fl-cta" href="./planner/">Começar pelo Franco Planner</a>
           <a class="lp-alt" href="#simulador">Acessar o simulador diretamente</a>
         </div>
         <div class="lp-hint">Diagnóstico inicial sem compromisso · Simulações ilustrativas</div>
@@ -212,7 +212,7 @@
     <div class="lp-stepgrid">
       <div class="lp-step">
         <span class="lp-step-num">01 · LEVANTAMENTO</span>
-        <h3>Lotus Planner</h3>
+        <h3>Franco Planner</h3>
         <p>Defina seu objetivo, recursos disponíveis, parcela desejada e prazo de aquisição.</p>
         <a href="./planner/">Iniciar diagnóstico →</a>
       </div>
@@ -274,7 +274,7 @@
     <a href="#inicio" class="lp-return" id="voltarApresentacao">← Voltar para a apresentação</a>
     <span class="lp-kicker">Franco360</span>
     <h2>Compare alternativas com clareza</h2>
-    <p>Você pode simular diretamente ou chegar aqui depois do Lotus Planner, aproveitando o objetivo e os valores informados no diagnóstico.</p>
+    <p>Você pode simular diretamente ou chegar aqui depois do Franco Planner, aproveitando o objetivo e os valores informados no diagnóstico.</p>
   </div>
 </div>
 
@@ -1959,7 +1959,7 @@
                 calcular();
                 const note=document.createElement('div');note.className='bg-slate-800 border border-slate-700 rounded-xl p-3 mb-4 text-sm';
                 const money=n=>Number(n).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-                note.textContent='Lotus Planner • '+d.objetivo+' | Recursos disponíveis: '+money(d.capital)+' | Parcela desejada: '+money(d.aporte)+' | Aquisição: '+d.periodo+' | Prioridade: '+d.prioridade+'. Recursos preenchidos como lance livre e entrada simulada, ambos editáveis. Prazo de aquisição e parcela desejada são referências; não garantem contemplação ou aprovação.';
+                note.textContent='Franco Planner • '+d.objetivo+' | Recursos disponíveis: '+money(d.capital)+' | Parcela desejada: '+money(d.aporte)+' | Aquisição: '+d.periodo+' | Prioridade: '+d.prioridade+'. Recursos preenchidos como lance livre e entrada simulada, ambos editáveis. Prazo de aquisição e parcela desejada são referências; não garantem contemplação ou aprovação.';
                 const textoProjeto=typeof d.projeto==='string'?d.projeto.trim().slice(0,600):'';
                 if(textoProjeto){
                   const respostaProjeto=document.createElement('p');
