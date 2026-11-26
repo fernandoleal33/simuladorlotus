@@ -14,12 +14,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>body { font-family: 'Inter', sans-serif; }</style>
-<style>.leal-footer{padding:36px 20px;background:#09192d;font-size:14px}.leal-footer-inner{max-width:650px;margin:auto}.leal-signature{display:flex;align-items:center;justify-content:center;gap:16px;text-align:left}.leal-signature img{width:76px;height:76px;border:2px solid #d6b77c;border-radius:50%;object-fit:cover;object-position:center 30%}.leal-signature strong{display:block;color:#d6b77c;font-size:23px}.leal-signature span,.leal-signature small,.leal-footer-brand small{display:block}.leal-signature span{color:#fff;font-size:16px}.leal-footer-actions{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;margin:20px 0}.leal-footer-actions a{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 18px;border:1px solid #d6b77c;border-radius:8px;color:#d6b77c;text-decoration:none;font-weight:600}.leal-footer-actions #whatsappRodape{background:#128c4b;border-color:#128c4b;color:white}.leal-footer [hidden]{display:none!important}.leal-footer-brand{border-top:1px solid #34445a;padding-top:20px}.leal-footer-brand strong{font-size:20px;letter-spacing:2px;color:#d6b77c}.leal-footer-brand small:last-child{margin-top:10px;opacity:.7}</style></head>
+<style>.leal-footer{padding:36px 20px;background:#09192d;font-size:14px}.leal-footer-inner{max-width:650px;margin:auto}.leal-signature{display:flex;align-items:center;justify-content:center;gap:16px;text-align:left}.leal-signature img{width:76px;height:76px;border:2px solid #d6b77c;border-radius:50%;object-fit:cover;object-position:center 30%}.leal-signature strong{display:block;color:#d6b77c;font-size:23px}.leal-signature span,.leal-signature small,.leal-footer-brand small{display:block}.leal-signature span{color:#fff;font-size:16px}.leal-footer-actions{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;margin:20px 0}.leal-footer-actions a{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 18px;border:1px solid #d6b77c;border-radius:8px;color:#d6b77c;text-decoration:none;font-weight:600}.leal-footer-actions #whatsappRodape{background:#128c4b;border-color:#128c4b;color:white}.leal-footer [hidden]{display:none!important}.leal-footer-brand{border-top:1px solid #34445a;padding-top:20px}.leal-footer-brand strong{font-size:20px;letter-spacing:2px;color:#d6b77c}.leal-footer-brand small:last-child{margin-top:10px;opacity:.7}</style><style>#inicio > .fl-nav,#inicio > .fl-hero,#inicio > .lp-section,#inicio > .lp-about{display:none!important}</style></head>
 <body class="bg-slate-900 text-slate-100 min-h-screen">
 <script>
   // O endereço principal abre a apresentação. Links diretos e retornos do Planner
   // abrem o simulador automaticamente, sem alterar os cálculos.
-  if (location.hash === '#simulador' ||
+  if (true || location.hash === '#simulador' ||
       location.hash.startsWith('#lotus=') ||
       new URLSearchParams(location.search).get('planner') === '1' ||
       new URLSearchParams(location.search).get('sim') === '1') {
@@ -264,7 +264,7 @@
       requestAnimationFrame(() => document.getElementById('simulador').scrollIntoView({behavior:'smooth',block:'start'}));
     }
     if (event.target.closest && event.target.closest('#voltarApresentacao')) {
-      document.documentElement.classList.remove('lotus-sim-open');
+      document.documentElement.classList.add('lotus-sim-open');
     }
   });
   window.addEventListener('hashchange', () => {
@@ -272,7 +272,7 @@
   });
 </script>
   <div class="fl-simulator-intro" id="simulador">
-    <a href="./planner/" class="lp-return" id="voltarApresentacao">← Voltar ao planejamento</a>
+    <a href="/" class="lp-return" id="voltarApresentacao">← Voltar à apresentação</a>
     <span class="lp-kicker">Leal Finanças</span>
     <h2>Compare alternativas com clareza</h2>
     <p>Você pode simular diretamente ou chegar aqui depois do Leal Finanças, aproveitando o objetivo e os valores informados no diagnóstico.</p>
@@ -1881,6 +1881,7 @@
             aplicarConsultor();
             atualizarOpcoesReduzida();
             mudarProduto();
+            const produtoPortal=new URLSearchParams(location.search).get("produto"); if(produtoPortal) abrirSolucao(produtoPortal);
             // Evento de seleção configurado diretamente no campo.
             for(const id of ['credito','prazoConsorcio']){
                 const el=document.getElementById(id);
