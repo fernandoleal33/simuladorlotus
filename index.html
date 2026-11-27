@@ -893,7 +893,7 @@
             document.getElementById('planoUnifisa').value='';
             atualizarTabelaUnifisa();
             document.getElementById('ativarReduzida').checked=false;
-            if(prod==='investimento'){document.getElementById('prazoConsorcio').value=240;sincronizarPrazoPatrimonial();}
+            if(prod==='investimento'){preencherPlanosPatrimoniais();document.getElementById('planoUnifisa').value=document.getElementById('planoPatrimonial').value;document.getElementById('prazoConsorcio').value=240;sincronizarPrazoPatrimonial();}
             const investimento=prod==='investimento';
             document.getElementById('resEconomia').closest('.grid.grid-cols-1').style.display=investimento?'none':'grid';
             document.getElementById('textoDiferencas').parentElement.style.display=investimento?'none':'block';
@@ -1421,6 +1421,11 @@
           const prazoCons=Math.max(1,Math.floor(num('prazoConsorcio',240)));
           const indicePrazo=plano?.prazos.indexOf(prazoCons)??-1;
           const valido=!!plano&&indicePrazo>=0;
+          if(document.getElementById('produto').value==='investimento'){
+            document.getElementById('taxaAdmAnual').value=valido?plano.adm[indicePrazo]:'';
+            document.getElementById('fundoReservaPct').value=2.5;
+            document.getElementById('seguroMensalPct').value=0.03;
+          }
           const calculo=valido?calcularParcelasTabela(valor,prazoCons,plano.adm[indicePrazo],2.5,0.03,plano):null;
           const parcela=calculo?.mensal||0;
           const detalhe=document.getElementById('resumoTabelaPatrimonial');
@@ -1541,7 +1546,7 @@
           const produto=document.getElementById('produto').value;
           const sel=document.getElementById('planoUnifisa');
           const anterior=sel.value;
-          const planos=tabelaPlanos[produto]||{};
+          const planos=tabelaPlanos[produto==='investimento'?'imovel':produto]||{};
           // Em automóveis leves, somente planos próprios da categoria.
           const permitidosAuto=new Set(['alphaPlus','betha','gamma','gamma30']);
           sel.replaceChildren();
@@ -1563,6 +1568,12 @@
         document.addEventListener('DOMContentLoaded',preencherOpcoesTabela);
         function aplicarTabelaUnifisa(){
           const produto=document.getElementById('produto').value;
+          if(produto==='investimento'){
+            const principal=document.getElementById('planoUnifisa'),patrimonial=document.getElementById('planoPatrimonial');
+            if(document.activeElement===principal&&tabelaPlanos.imovel[principal.value])patrimonial.value=principal.value;
+            if(tabelaPlanos.imovel[patrimonial.value])principal.value=patrimonial.value;
+            calcularIndice();return;
+          }
           const plano=tabelaPlanos[produto]?.[document.getElementById('planoUnifisa').value];
           const detalhe=document.getElementById('detalheUnifisa');
           if(!plano){detalhe.textContent='Selecione uma tabela para preencher a taxa administrativa automaticamente; crédito e prazo permanecem manuais.';calcular();return;}
@@ -1783,7 +1794,8 @@
             document.getElementById('vincularPrazoPatrimonial').addEventListener('change',sincronizarPrazoPatrimonial);
             document.getElementById('mesRetiradaIndice').addEventListener('input',calcularIndice);
             preencherPlanosPatrimoniais();
-            document.getElementById('planoPatrimonial').addEventListener('change',calcularIndice);
+            document.getElementById('planoPatrimonial').addEventListener('change',()=>{if(document.getElementById('produto').value==='investimento')document.getElementById('planoUnifisa').value=document.getElementById('planoPatrimonial').value;calcularIndice();});
+            if(document.getElementById('produto').value==='investimento')aplicarTabelaUnifisa();
             document.getElementById('cenarioPatrimonial').addEventListener('change',function(){if(this.value!=='manual')document.getElementById('valorizacaoIndice').value=this.value;calcularIndice();});
             document.getElementById('valorizacaoIndice').addEventListener('input',function(){document.getElementById('cenarioPatrimonial').value='manual';calcularIndice();});
             ['aluguelPatrimonial','vacanciaPatrimonial','despesasPatrimoniais','anosIndice'].forEach(id=>document.getElementById(id).addEventListener('input',calcularIndice));
