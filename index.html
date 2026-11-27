@@ -1403,6 +1403,10 @@
           if(tabelaPlanos.imovel[anterior])sel.value=anterior;
           else if(tabelaPlanos.imovel.gamma)sel.value='gamma';
         }
+        function indicePrazoComercial(plano,prazo){
+          if(!plano||!Number.isFinite(prazo)||prazo<Math.min(...plano.prazos)||prazo>Math.max(...plano.prazos))return -1;
+          return plano.prazos.reduce((melhor,p,i)=>Math.abs(p-prazo)<Math.abs(plano.prazos[melhor]-prazo)||(Math.abs(p-prazo)===Math.abs(plano.prazos[melhor]-prazo)&&p>plano.prazos[melhor])?i:melhor,0);
+        }
         function calcularIndice(){
           const out=document.getElementById('resultadoIndice');
           const raw=document.getElementById('taxaOficial').value;
@@ -1419,7 +1423,7 @@
           const chavePlano=document.getElementById('planoPatrimonial').value;
           const plano=tabelaPlanos.imovel[chavePlano];
           const prazoCons=Math.max(1,Math.floor(num('prazoConsorcio',240)));
-          const indicePrazo=plano?.prazos.indexOf(prazoCons)??-1;
+          const indicePrazo=indicePrazoComercial(plano,prazoCons);
           const valido=!!plano&&indicePrazo>=0;
           if(document.getElementById('produto').value==='investimento'){
             document.getElementById('taxaAdmAnual').value=valido?plano.adm[indicePrazo]:'';
@@ -1430,7 +1434,7 @@
           const parcela=calculo?.mensal||0;
           const detalhe=document.getElementById('resumoTabelaPatrimonial');
           detalhe.textContent=valido
-            ? plano.nome+' · '+prazoCons+' meses · taxa adm. total '+plano.adm[indicePrazo]+'% · reserva 2,5% · seguro estimado 0,03% a.m.'
+            ? plano.nome+' · '+prazoCons+' meses'+(plano.prazos[indicePrazo]!==prazoCons?' (taxa de referência: '+plano.prazos[indicePrazo]+' meses)':'')+' · taxa adm. total '+plano.adm[indicePrazo]+'% · reserva 2,5% · seguro estimado 0,03% a.m.'
             : 'Prazo não disponível nesta tabela. Selecione um prazo comercial válido: '+(plano?.prazos.join(', ')||'—')+'.';
           const aluguel=Math.max(0,num('aluguelPatrimonial',0));
           const vacancia=Math.max(0,Math.min(100,num('vacanciaPatrimonial',10)))/100;
@@ -1584,7 +1588,7 @@
           const limitePower=credito<100000?80:credito<150000?100:120;
           const prazosElegiveis=plano.power?plano.prazos.filter(p=>p<=limitePower):plano.prazos;
           if(document.activeElement===document.getElementById('planoUnifisa')
-             && !prazosElegiveis.includes(Number(campoPrazo.value))
+             && (plano.power?!prazosElegiveis.includes(Number(campoPrazo.value)):indicePrazoComercial(plano,Number(campoPrazo.value))<0)
              && (!plano.power||(credito>=70000&&credito<=300000))
              && prazosElegiveis.length){
             campoPrazo.value=prazosElegiveis[0];
@@ -1596,7 +1600,7 @@
             calcular();return;
           }
           // Correspondência exata com o prazo comercial; não presumir taxas para prazos não tabelados.
-          const i=plano.prazos.indexOf(prazo);
+          const i=plano.power?plano.prazos.indexOf(prazo):indicePrazoComercial(plano,prazo);
           if(i<0){
             detalhe.textContent='O prazo informado não consta na tabela '+plano.nome+'. Ajuste o prazo para um prazo comercial válido; a taxa anterior não será aplicada automaticamente.';
             document.getElementById('taxaAdmAnual').value='';
@@ -1621,7 +1625,7 @@
             const opcoes=prazosElegiveis.slice().sort((a,b)=>a-b);
             detalhe.textContent='Prazos disponíveis para este crédito: '+opcoes.join(', ')+' meses. Você pode escolher qualquer um desses prazos; a taxa e a antecipação serão recalculadas automaticamente. Condições sujeitas à confirmação do grupo.';
           }else{
-            detalhe.replaceChildren(); // Os valores ficam apenas no resumo financeiro, evitando duplicidade.
+            detalhe.textContent=plano.prazos[i]!==prazo?'Taxa de referência do prazo tabelado de '+plano.prazos[i]+' meses; confirme condições do grupo.':'';
           }
           calcular();
         }
